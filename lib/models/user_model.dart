@@ -36,4 +36,22 @@ class User {
       'is_admin': isAdmin ? 1 : 0,
     };
   }
+
+  User copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? avatar,
+    int? ultimoIdCliente,
+    bool? isAdmin,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      avatar: avatar ?? this.avatar,
+      ultimoIdCliente: ultimoIdCliente ?? this.ultimoIdCliente,
+      isAdmin: isAdmin ?? this.isAdmin,
+    );
+  }
 }

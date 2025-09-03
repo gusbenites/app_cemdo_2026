@@ -4,112 +4,97 @@ import 'package:app_cemdo/widgets/account_card.dart';
 import 'package:app_cemdo/widgets/invoice_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:app_cemdo/providers/invoice_provider.dart'; // Added
+import 'package:app_cemdo/services/secure_storage_service.dart'; // Added
 
-class InvoicesScreen extends StatelessWidget {
+class InvoicesScreen extends StatefulWidget {
   final bool showAll;
 
   const InvoicesScreen({super.key, this.showAll = false});
 
   @override
-  Widget build(BuildContext context) {
-    final List<Invoice> sampleInvoices = [
-      Invoice.fromJson({
-        "idcbte": 37168664,
-        "idsuministro": 303172,
-        "nro_factura": "01-0006-FAC-2000-A-00197688",
-        "fecha_vto": "17/07/2025",
-        "servicio": "Unificado",
-        "srv_importe": "13.064,20",
-        "srv_saldo": "0.00",
-        "estado": "Pagado",
-        "is_vencida": false,
-        "anio": 2025,
-        "nroper": 5,
-        "domicilio_sum_r1": "MZ. 101 LOTE 5 FIDEICOMISO UNION",
-        "domicilio_sum_r2": "(5870) VILLA DOLORES-Córdoba"
-      }),
-      Invoice.fromJson({
-        "idcbte": 37208077,
-        "idsuministro": 303171,
-        "nro_factura": "01-0048-FAC-2000-A-00134843",
-        "fecha_vto": "17/07/2025",
-        "servicio": "Energia",
-        "srv_importe": "239.493,95",
-        "srv_saldo": "0.00",
-        "estado": "Pagado",
-        "is_vencida": false,
-        "anio": 2025,
-        "nroper": 5,
-        "domicilio_sum_r1": "MZ. 101 LOTE 5 FIDEICOMISO UNION",
-        "domicilio_sum_r2": "(5870) VILLA DOLORES-Córdoba"
-      }),
-      Invoice.fromJson({
-        "idcbte": 37487572,
-        "idsuministro": 303172,
-        "nro_factura": "01-0006-FAC-2000-A-00200290",
-        "fecha_vto": "15/08/2025",
-        "servicio": "Unificado",
-        "srv_importe": "10.859,99",
-        "srv_saldo": "10859.99",
-        "estado": "Vencida",
-        "is_vencida": true,
-        "anio": 2025,
-        "nroper": 6,
-        "domicilio_sum_r1": "MZ. 101 LOTE 5 FIDEICOMISO UNION",
-        "domicilio_sum_r2": "(5870) VILLA DOLORES-Córdoba"
-      }),
-      Invoice.fromJson({
-        "idcbte": 37508930,
-        "idsuministro": 303171,
-        "nro_factura": "01-0048-FAC-2000-A-00137388",
-        "fecha_vto": "15/08/2025",
-        "servicio": "Energia",
-        "srv_importe": "198.853,87",
-        "srv_saldo": "198853.87",
-        "estado": "Vencida",
-        "is_vencida": true,
-        "anio": 2025,
-        "nroper": 6,
-        "domicilio_sum_r1": "MZ. 101 LOTE 5 FIDEICOMISO UNION",
-        "domicilio_sum_r2": "(5870) VILLA DOLORES-Córdoba"
-      }),
-      Invoice.fromJson({
-        "idcbte": 37769439,
-        "idsuministro": 303172,
-        "nro_factura": "01-0006-FAC-2000-A-00201893",
-        "fecha_vto": "12/09/2025",
-        "servicio": "Unificado",
-        "srv_importe": "11.334,14",
-        "srv_saldo": "11334.14",
-        "estado": "Pendiente",
-        "is_vencida": false,
-        "anio": 2025,
-        "nroper": 7,
-        "domicilio_sum_r1": "MZ. 101 LOTE 5 FIDEICOMISO UNION",
-        "domicilio_sum_r2": "(5870) VILLA DOLORES-Córdoba"
-      }),
-      Invoice.fromJson({
-        "idcbte": 37792669,
-        "idsuministro": 303171,
-        "nro_factura": "01-0048-FAC-2000-A-00138983",
-        "fecha_vto": "12/09/2025",
-        "servicio": "Energia",
-        "srv_importe": "207.596,00",
-        "srv_saldo": "207596.00",
-        "estado": "Pendiente",
-        "is_vencida": false,
-        "anio": 2025,
-        "nroper": 7,
-        "domicilio_sum_r1": "MZ. 101 LOTE 5 FIDEICOMISO UNION",
-        "domicilio_sum_r2": "(5870) VILLA DOLORES-Córdoba"
-      })
-    ];
+  State<InvoicesScreen> createState() => _InvoicesScreenState();
+}
 
-    return Consumer<AccountProvider>(
-      builder: (context, accountProvider, child) {
+class _InvoicesScreenState extends State<InvoicesScreen> {
+  final SecureStorageService _secureStorageService = SecureStorageService();
+  bool _isLoading = true; // To show loading indicator
+  int? _lastFetchedAccountId; // Added
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInvoices();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This is a better place to react to provider changes
+    final accountProvider = Provider.of<AccountProvider>(context); // Listen to changes
+    if (accountProvider.activeAccount?.idcliente != _lastFetchedAccountId) {
+      _fetchInvoices();
+    }
+  }
+
+  Future<void> _fetchInvoices() async {
+    // Set loading to true at the start of fetch
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    try {
+      final token = await _secureStorageService.getToken();
+      if (!mounted) return;
+
+      final accountProvider = Provider.of<AccountProvider>(context, listen: false);
+      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+
+      if (token != null && accountProvider.activeAccount != null) {
+        _lastFetchedAccountId = accountProvider.activeAccount!.idcliente; // Update last fetched ID here
+        await invoiceProvider.fetchInvoices(token, accountProvider.activeAccount!.idcliente, showAll: widget.showAll);
+      } else {
+        // If no active account or token, clear invoices
+        invoiceProvider.allInvoices.clear(); // Clear all invoices
+        invoiceProvider.unpaidInvoices.clear(); // Clear unpaid invoices
+        debugPrint('Token or active account is null. Cannot fetch invoices.');
+      }
+    } catch (e) {
+      debugPrint('Error fetching invoices in InvoicesScreen: $e');
+      // Clear invoices on error
+      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+      invoiceProvider.allInvoices.clear();
+      invoiceProvider.unpaidInvoices.clear();
+    }
+    finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Removed sampleInvoices
+    return Consumer2<AccountProvider, InvoiceProvider>( // Use Consumer2 for multiple providers
+      builder: (context, accountProvider, invoiceProvider, child) {
         if (accountProvider.activeAccount == null) {
           return const Center(child: Text('No hay una cuenta activa seleccionada.'));
         }
+
+        if (_isLoading) {
+          return const Center(child: CircularProgressIndicator()); // Show loading indicator
+        }
+
+        // Determine which list of invoices to show based on showAll
+        final List<Invoice> invoicesToShow = widget.showAll
+            ? invoiceProvider.allInvoices // Show all invoices
+            : invoiceProvider.unpaidInvoices; // Show only unpaid invoices
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -148,13 +133,17 @@ class InvoicesScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Expanded(
-                          child: ListView.separated(
-                            itemCount: sampleInvoices.length,
-                            itemBuilder: (context, index) {
-                              return InvoiceCard(invoice: sampleInvoices[index]);
-                            },
-                            separatorBuilder: (context, index) => const Divider(),
-                          ),
+                          child: invoicesToShow.isEmpty
+                              ? const Center(
+                                  child: Text('No hay facturas para mostrar.'), // Generic message
+                                )
+                              : ListView.separated(
+                                  itemCount: invoicesToShow.length,
+                                  itemBuilder: (context, index) {
+                                    return InvoiceCard(invoice: invoicesToShow[index]);
+                                  },
+                                  separatorBuilder: (context, index) => const Divider(),
+                                ),
                         ),
                       ],
                     ),

@@ -29,4 +29,8 @@ class SecureStorageService {
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _userKey);
   }
+
+  Future<void> updateUser(User user) async {
+    await _storage.write(key: _userKey, value: jsonEncode(user.toJson()));
+  }
 }

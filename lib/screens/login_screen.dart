@@ -1,4 +1,3 @@
-import 'package:app_cemdo/main.dart';
 import 'package:app_cemdo/screens/registration_screen.dart';
 import 'package:app_cemdo/services/secure_storage_service.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +11,6 @@ import 'dart:async'; // Import for TimeoutException
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart'; // Added
 import 'package:app_cemdo/providers/account_provider.dart'; // Added
-import 'package:app_cemdo/screens/accounts_screen.dart'; // Added
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -82,7 +80,10 @@ class _LoginScreenState extends State<LoginScreen> {
           await _secureStorageService.storeLoginData(token, user);
 
           // Get AccountProvider instance
-          final accountProvider = Provider.of<AccountProvider>(context, listen: false);
+          final accountProvider = Provider.of<AccountProvider>(
+            context,
+            listen: false,
+          );
           // Fetch accounts
           await accountProvider.fetchAccounts(token);
 
@@ -362,51 +363,39 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       // Copyright and Version Info
-                      if (_packageInfo !=
-                          null) // Check if package info is loaded
+                      if (_packageInfo != null)
                         Column(
                           children: [
+                            const SizedBox(height: 24),
                             Text(
-                              'Versión: ${_packageInfo!.version} (${_packageInfo!.buildNumber})',
+                              '© ${DateTime.now().year} CEMDO Ltda. Todos los derechos reservados.',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                              ), // Changed to grey
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '(c) 2025 Derechos Reservado, Area de Innovación y Desarrollo, cooperativa CEMDO Ltda', // Updated copyright
+                              'Área de Innovación y Desarrollo',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                              ), // Changed to grey
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                             ),
-                            const SizedBox(height: 8), // Added space
+                            const SizedBox(height: 8),
+                            Text(
+                              'Versión ${_packageInfo!.version} (${_packageInfo!.buildNumber})',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                            const SizedBox(height: 8),
                             TextButton(
                               onPressed: () async {
-                                final termsUrl =
-                                    dotenv.env['TERMS_AND_CONDITIONS_URL'];
-                                if (termsUrl != null &&
-                                    await canLaunchUrl(Uri.parse(termsUrl))) {
-                                  await launchUrl(Uri.parse(termsUrl));
-                                } else {
-                                  _showSnackBar(
-                                    'No se pudo abrir la URL de Términos y Condiciones.',
-                                  );
+                                final termsUrl = dotenv.env['TERMS_AND_CONDITIONS_URL'];
+                                if (termsUrl != null) {
+                                  final uri = Uri.parse(termsUrl);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  }
                                 }
                               },
-                              child: const Text(
-                                'Ver Términos y Condiciones',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors
-                                      .blue, // Or a color that fits your theme
-                                  fontSize: 12,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
+                              child: const Text('Térmenos y Condiciones'),
                             ),
                           ],
                         ),

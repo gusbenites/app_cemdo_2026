@@ -1,5 +1,6 @@
 import 'package:app_cemdo/providers/account_provider.dart';
 import 'package:app_cemdo/models/account_model.dart'; // Added
+import 'package:app_cemdo/providers/invoice_provider.dart'; // Added
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'screens/invoices_screen.dart';
@@ -10,6 +11,7 @@ import 'screens/login_screen.dart';
 import 'services/secure_storage_service.dart';
 import 'package:package_info_plus/package_info_plus.dart'; // Added
 import 'package:url_launcher/url_launcher.dart'; // Added
+import 'widgets/about_dialog_widget.dart';
 
 
 void main() async {
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<SecureStorageService>(create: (_) => SecureStorageService()),
         ChangeNotifierProvider(create: (_) => AccountProvider()),
+        ChangeNotifierProvider(create: (_) => InvoiceProvider()), // Added
       ],
       child: MaterialApp(
         title: 'Portal CEMDO',
@@ -168,39 +171,9 @@ class _MainScreenState extends State<MainScreen> {
             onSelected: (String item) async {
               if (item == 'Acerca de...') {
                 if (!mounted) return; // Added
-                showAboutDialog(
+                showDialog(
                   context: context,
-                  applicationName: 'Portal CEMDO',
-                  applicationVersion: '${_packageInfo?.version ?? ''} (${_packageInfo?.buildNumber ?? ''})', // Updated version
-                  children: <Widget>[
-                    const Text('App info here'),
-                    const SizedBox(height: 24),
-                    TextButton(
-                      onPressed: () async {
-                        final termsUrl = dotenv.env['TERMS_AND_CONDITIONS_URL'];
-                        if (termsUrl != null &&
-                            await canLaunchUrl(Uri.parse(termsUrl))) {
-                          await launchUrl(Uri.parse(termsUrl));
-                        } else {
-                          if (!mounted) return; // Added
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'No se pudo abrir la URL de Términos y Condiciones.',
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Ver Términos y Condiciones',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ],
+                  builder: (context) => const AboutDialogWidget(),
                 );
               } else if (item == 'Cerrar Sesión') {
                 final secureStorageService = SecureStorageService();

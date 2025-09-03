@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AccountListItem extends StatelessWidget {
   final Account account;
   final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final VoidCallback onDelete;
 
   const AccountListItem({
