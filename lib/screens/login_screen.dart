@@ -279,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
                           // Placeholder for forgot password action
@@ -289,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(color: Colors.grey[600]),
                         ), // Changed to grey[600]
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -316,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           const Expanded(
@@ -361,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       // Copyright and Version Info
                       if (_packageInfo != null)
                         Column(
@@ -370,24 +370,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             Text(
                               '© ${DateTime.now().year} CEMDO Ltda. Todos los derechos reservados.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Área de Innovación y Desarrollo',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Versión ${_packageInfo!.version} (${_packageInfo!.buildNumber})',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
                             ),
                             const SizedBox(height: 8),
                             TextButton(
                               onPressed: () async {
-                                final termsUrl = dotenv.env['TERMS_AND_CONDITIONS_URL'];
+                                final termsUrl =
+                                    dotenv.env['TERMS_AND_CONDITIONS_URL'];
                                 if (termsUrl != null) {
                                   final uri = Uri.parse(termsUrl);
                                   if (await canLaunchUrl(uri)) {
@@ -395,7 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   }
                                 }
                               },
-                              child: const Text('Térmenos y Condiciones'),
+                              child: const Text('Términos y Condiciones'),
                             ),
                           ],
                         ),

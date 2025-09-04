@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/providers/invoice_provider.dart'; // Added
 import 'package:app_cemdo/services/secure_storage_service.dart'; // Added
+import 'package:app_cemdo/screens/pdf_view_screen.dart';
 
 class InvoicesScreen extends StatefulWidget {
   final bool showAll;
@@ -140,7 +141,20 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                               : ListView.separated(
                                   itemCount: invoicesToShow.length,
                                   itemBuilder: (context, index) {
-                                    return InvoiceCard(invoice: invoicesToShow[index]);
+                                    final invoice = invoicesToShow[index];
+                                    return InvoiceCard(
+                                      invoice: invoice,
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => PdfViewScreen(
+                                              idcbte: invoice.idcbte.toString(),
+                                              nroFactura: invoice.nroFactura,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
                                   },
                                   separatorBuilder: (context, index) => const Divider(),
                                 ),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/providers/invoice_provider.dart'; // Added
 import 'package:app_cemdo/services/secure_storage_service.dart'; // Added
+import 'package:app_cemdo/screens/pdf_view_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -152,7 +153,20 @@ class _HomeScreenState extends State<HomeScreen> {
                               : ListView.separated(
                                   itemCount: pendingAndOverdueInvoices.length,
                                   itemBuilder: (context, index) {
-                                    return InvoiceCard(invoice: pendingAndOverdueInvoices[index]);
+                                    final invoice = pendingAndOverdueInvoices[index];
+                                    return InvoiceCard(
+                                      invoice: invoice,
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => PdfViewScreen(
+                                              idcbte: invoice.idcbte.toString(),
+                                              nroFactura: invoice.nroFactura,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
                                   },
                                   separatorBuilder: (context, index) => const Divider(),
                                 ),

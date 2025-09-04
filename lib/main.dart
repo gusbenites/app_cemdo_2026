@@ -9,14 +9,41 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
 import 'services/secure_storage_service.dart';
-import 'package:package_info_plus/package_info_plus.dart'; // Added
-import 'package:url_launcher/url_launcher.dart'; // Added
-import 'widgets/about_dialog_widget.dart';
 
+import 'widgets/about_dialog_widget.dart';
+import 'screens/notices_screen.dart'; // Added for NoticesScreen
+import 'package:firebase_core/firebase_core.dart'; // Added for Firebase
+import 'package:firebase_messaging/firebase_messaging.dart'; // Added for Firebase Messaging
+import 'services/notification_service.dart'; // Added for Notification Service
+import 'package:shared_preferences/shared_preferences.dart'; // Added for SharedPreferences
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(); // Initialize Firebase for background messages
+  debugPrint("Handling a background message: \${message.messageId}");
+  NotificationService().saveNotification(
+    message.notification?.title ?? 'No Title',
+    message.notification?.body ?? 'No Body',
+    message.data['tipo'] ?? 'general',
+    message.data['timestamp'] ?? DateTime.now().toIso8601String(),
+  );
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Initialize Firebase
   await dotenv.load(fileName: ".env");
+
+  // Temporarily clear old notifications for debugging
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('notifications'); // Clear the key
+
+  // Initialize Notification Service
+  await NotificationService().initialize();
+
+  // Register background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   runApp(const MyApp());
 }
 
@@ -29,6 +56,7 @@ class MyApp extends StatelessWidget {
         Provider<SecureStorageService>(create: (_) => SecureStorageService()),
         ChangeNotifierProvider(create: (_) => AccountProvider()),
         ChangeNotifierProvider(create: (_) => InvoiceProvider()), // Added
+        ChangeNotifierProvider(create: (_) => NotificationService()), // Added
       ],
       child: MaterialApp(
         title: 'Portal CEMDO',
@@ -36,9 +64,12 @@ class MyApp extends StatelessWidget {
         home: const AuthCheck(),
         debugShowCheckedModeBanner: false,
         routes: {
-          '/main': (context) => const MainScreen(), // Named route for MainScreen
-          '/login': (context) => const LoginScreen(), // Named route for LoginScreen
-          '/accounts': (context) => const AccountsScreen(), // Named route for AccountsScreen
+          '/main': (context) =>
+              const MainScreen(), // Named route for MainScreen
+          '/login': (context) =>
+              const LoginScreen(), // Named route for LoginScreen
+          '/accounts': (context) =>
+              const AccountsScreen(), // Named route for AccountsScreen
         },
       ),
     );
@@ -49,10 +80,11 @@ class AuthCheck extends StatefulWidget {
   const AuthCheck({super.key});
 
   @override
-  _AuthCheckState createState() => _AuthCheckState();
+  AuthCheckState createState() => AuthCheckState();
 }
 
-class _AuthCheckState extends State<AuthCheck> {
+class AuthCheckState extends State<AuthCheck> {
+  bool _isLoading = true; // Added loading state
   bool _isLoggedIn = false;
   final _secureStorageService = SecureStorageService();
 
@@ -67,7 +99,7 @@ class _AuthCheckState extends State<AuthCheck> {
     final user = await _secureStorageService.getUser();
 
     if (token != null && user != null) {
-      if (!mounted) return; // Added
+      if (!mounted) return;
       final accountProvider = Provider.of<AccountProvider>(
         context,
         listen: false,
@@ -76,16 +108,15 @@ class _AuthCheckState extends State<AuthCheck> {
       // Fetch accounts on app start
       await accountProvider.fetchAccounts(token);
 
-      if (!mounted) return; // Added
+      if (!mounted) return;
       // Set the active account if ultimoIdCliente is defined and accounts are available
       if (user.ultimoIdCliente != null && accountProvider.accounts.isNotEmpty) {
-        Account? activeAccount; // Make activeAccount nullable
+        Account? activeAccount;
         try {
           activeAccount = accountProvider.accounts.firstWhere(
             (acc) => acc.idcliente == user.ultimoIdCliente,
           );
         } catch (e) {
-          // If no element is found, activeAccount remains null
           debugPrint('Active account not found: $e');
         }
 
@@ -94,16 +125,58 @@ class _AuthCheckState extends State<AuthCheck> {
         }
       }
 
-      if (!mounted) return; // Added
+      if (!mounted) return;
       setState(() {
         _isLoggedIn = true;
+        _isLoading = false; // Set loading to false after check
+      });
+      // Send FCM token to backend after successful login
+      NotificationService().sendFcmTokenToBackend(
+        user.id.toString(),
+      ); // Assuming user.id is available and can be converted to String
+    } else {
+      if (!mounted) return;
+      setState(() {
+        _isLoggedIn = false;
+        _isLoading = false; // Set loading to false if not logged in
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _isLoggedIn ? const MainScreen() : const LoginScreen();
+    if (_isLoading) {
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue[700]!, Colors.blue[900]!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/logo_cemdo.png', height: 120),
+                const SizedBox(height: 24),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Cargando...',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      return _isLoggedIn ? const MainScreen() : const LoginScreen();
+    }
   }
 }
 
@@ -111,38 +184,33 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  MainScreenState createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  PackageInfo? _packageInfo; // Added
   final _secureStorageService = SecureStorageService(); // Added
   static final List<Widget> _widgetOptions = <Widget>[
     const HomeScreen(),
     const InvoicesScreen(showAll: true),
     const AccountsScreen(),
+    const NoticesScreen(), // Added for Notifications
   ];
 
   @override
   void initState() {
     super.initState();
-    _initPackageInfo();
     _checkAccountStatusAndNavigate(); // Call the new method
-  }
-
-  Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _packageInfo = info;
-    });
   }
 
   // New method to check account status and navigate
   Future<void> _checkAccountStatusAndNavigate() async {
     final user = await _secureStorageService.getUser();
     if (!mounted) return; // Added
-    final accountProvider = Provider.of<AccountProvider>(context, listen: false);
+    final accountProvider = Provider.of<AccountProvider>(
+      context,
+      listen: false,
+    );
 
     if (accountProvider.accounts.isEmpty || user?.ultimoIdCliente == null) {
       if (!mounted) return; // Added
@@ -200,7 +268,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
             icon: Icon(Icons.all_inbox),
@@ -210,11 +278,50 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.account_box),
             label: 'Cuentas',
           ),
+          BottomNavigationBarItem(
+            icon: Consumer<NotificationService>(
+              builder: (context, notificationService, child) {
+                final unreadCount =
+                    notificationService.unreadCount; // Direct access
+                return Stack(
+                  children: [
+                    Icon(Icons.notifications),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            label: 'Avisos',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
+        showUnselectedLabels: true,
       ),
     );
   }

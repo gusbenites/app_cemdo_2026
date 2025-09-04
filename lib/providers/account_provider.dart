@@ -25,7 +25,8 @@ class AccountProvider with ChangeNotifier {
   void unlinkAccount(Account account) {
     _accounts.removeWhere((acc) => acc.idcliente == account.idcliente);
     if (_activeAccount?.idcliente == account.idcliente) {
-      _activeAccount = null; // Set active account to null if the unlinked account was the active one
+      _activeAccount =
+          null; // Set active account to null if the unlinked account was the active one
     }
     notifyListeners();
     // The API call will now be handled by unlinkAccountApi
@@ -48,9 +49,7 @@ class AccountProvider with ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer $token',
         },
-        body: {
-          'cuenta_activa': accountIdToUnlink.toString(),
-        },
+        body: {'cuenta_activa': accountIdToUnlink.toString()},
       );
 
       debugPrint('Unlink account response status code: ${response.statusCode}');
@@ -61,7 +60,9 @@ class AccountProvider with ChangeNotifier {
         // Find the account to unlink. If not found, it's an unexpected state.
         final accountToUnlink = _accounts.firstWhere(
           (acc) => acc.idcliente == accountIdToUnlink,
-          orElse: () => throw Exception('Account not found locally after successful unlink API call'),
+          orElse: () => throw Exception(
+            'Account not found locally after successful unlink API call',
+          ),
         );
         unlinkAccount(accountToUnlink); // Call the local state update method
 
@@ -79,7 +80,9 @@ class AccountProvider with ChangeNotifier {
               // No accounts left
               newUltimoIdCliente = null;
             }
-            currentUser = currentUser.copyWith(ultimoIdCliente: newUltimoIdCliente);
+            currentUser = currentUser.copyWith(
+              ultimoIdCliente: newUltimoIdCliente,
+            );
             await secureStorageService.updateUser(currentUser);
           }
         }
@@ -102,7 +105,9 @@ class AccountProvider with ChangeNotifier {
       return;
     }
 
-    final url = Uri.parse('$backendUrl/accounts'); // Assuming /accounts endpoint
+    final url = Uri.parse(
+      '$backendUrl/accounts',
+    ); // Assuming /accounts endpoint
     debugPrint('Fetching accounts from: $url'); // Added debug print
     try {
       final response = await http.get(
@@ -113,15 +118,20 @@ class AccountProvider with ChangeNotifier {
         },
       );
 
-      debugPrint('Response status code: ${response.statusCode}'); // Added debug print
+      debugPrint(
+        'Response status code: ${response.statusCode}',
+      ); // Added debug print
       debugPrint('Response body: ${response.body}'); // Added debug print
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
-        final List<dynamic> responseData = decodedResponse['data']; // Access the 'data' key
+        final List<dynamic> responseData =
+            decodedResponse['data']; // Access the 'data' key
         debugPrint('Parsed response data: $responseData'); // Added debug print
         _accounts = responseData.map((json) => Account.fromJson(json)).toList();
-        debugPrint('Number of accounts fetched: ${_accounts.length}'); // Added debug print
+        debugPrint(
+          'Number of accounts fetched: ${_accounts.length}',
+        ); // Added debug print
         // Optionally set active account if there's only one or based on some logic
         if (_accounts.isNotEmpty && _activeAccount == null) {
           _activeAccount = _accounts.first;
@@ -155,12 +165,12 @@ class AccountProvider with ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer $token',
         },
-        body: {
-          'cuenta_activa': newActiveAccountId.toString(),
-        },
+        body: {'cuenta_activa': newActiveAccountId.toString()},
       );
 
-      debugPrint('Change active account response status code: ${response.statusCode}');
+      debugPrint(
+        'Change active account response status code: ${response.statusCode}',
+      );
       debugPrint('Change active account response body: ${response.body}');
 
       if (response.statusCode == 200) {
@@ -177,23 +187,19 @@ class AccountProvider with ChangeNotifier {
           return false;
         }
 
-        if (updatedAccount != null) {
-          _activeAccount = updatedAccount;
-          notifyListeners();
+        _activeAccount = updatedAccount;
+        notifyListeners();
 
-          // Update ultimo_idcliente in stored User object
-          final secureStorageService = SecureStorageService();
-          User? currentUser = await secureStorageService.getUser();
-          if (currentUser != null) {
-            currentUser = currentUser.copyWith(ultimoIdCliente: newActiveAccountId);
-            await secureStorageService.updateUser(currentUser);
-          }
-          return true;
-        } else {
-          // This case should ideally not be reached if firstWhere throws an exception
-          debugPrint('Failed to find updated account locally.');
-          return false;
+        // Update ultimo_idcliente in stored User object
+        final secureStorageService = SecureStorageService();
+        User? currentUser = await secureStorageService.getUser();
+        if (currentUser != null) {
+          currentUser = currentUser.copyWith(
+            ultimoIdCliente: newActiveAccountId,
+          );
+          await secureStorageService.updateUser(currentUser);
         }
+        return true;
       } else {
         debugPrint('Failed to change active account: ${response.statusCode}');
         return false;
@@ -204,7 +210,11 @@ class AccountProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> linkAccount(String token, String nroUsuario, String cuentaAgrupada) async {
+  Future<bool> linkAccount(
+    String token,
+    String nroUsuario,
+    String cuentaAgrupada,
+  ) async {
     final backendUrl = dotenv.env['BACKEND_URL'];
     if (backendUrl == null) {
       debugPrint('BACKEND_URL not configured.');
@@ -220,10 +230,7 @@ class AccountProvider with ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer $token',
         },
-        body: {
-          'nro_usuario': nroUsuario,
-          'cuenta_agrupada': cuentaAgrupada,
-        },
+        body: {'nro_usuario': nroUsuario, 'cuenta_agrupada': cuentaAgrupada},
       );
 
       debugPrint('Link account response status code: ${response.statusCode}');
@@ -232,17 +239,21 @@ class AccountProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         // If API call is successful, then refresh the accounts list
         await fetchAccounts(token);
-        
+
         // Find the newly linked account and set it as active
         final newAccountId = int.tryParse(nroUsuario);
         if (newAccountId != null) {
-          final accountExists = _accounts.any((acc) => acc.idcliente == newAccountId);
+          final accountExists = _accounts.any(
+            (acc) => acc.idcliente == newAccountId,
+          );
           if (accountExists) {
             return await changeActiveAccount(token, newAccountId);
           }
         }
         // If we are here, something went wrong with finding the new account.
-        debugPrint('Failed to find the newly linked account to set it as active.');
+        debugPrint(
+          'Failed to find the newly linked account to set it as active.',
+        );
         return false;
       } else {
         debugPrint('Failed to link account: ${response.statusCode}');

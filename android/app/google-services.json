@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "488692862419",
+    "project_id": "portal-cemdo",
+    "storage_bucket": "portal-cemdo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488692862419:android:e2912155b0bbbe17133326",
+        "android_client_info": {
+          "package_name": "com.cemdo.portal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnUDbtjRCYn2rtAbhxd91U8HcTCKGdz8I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
