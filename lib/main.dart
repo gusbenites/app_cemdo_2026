@@ -32,7 +32,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Initialize Firebase
-  await dotenv.load(fileName: ".env");
+  // Define the flavor, defaulting to 'development'
+  const String flavor = String.fromEnvironment('FLAVOR', defaultValue: 'development');
+  await dotenv.load(fileName: ".env.$flavor"); // Load the appropriate .env file
 
   // Temporarily clear old notifications for debugging
   final prefs = await SharedPreferences.getInstance();

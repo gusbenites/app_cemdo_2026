@@ -15,9 +15,11 @@ class NotificationService extends ChangeNotifier {
   NotificationService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  int _unreadCount = 0; // Added
+  int _unreadCount = 0;
+  List<Map<String, dynamic>> _notificationsList = [];
 
-  int get unreadCount => _unreadCount; // Added
+  int get unreadCount => _unreadCount;
+  List<Map<String, dynamic>> get notifications => _notificationsList;
 
   Future<void> initialize() async {
     // Request permission for notifications
@@ -130,11 +132,18 @@ class NotificationService extends ChangeNotifier {
     };
     notifications.add(jsonEncode(notification));
     await prefs.setStringList('notifications', notifications);
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
     _unreadCount++; // Increment unread count
     notifyListeners(); // Notify listeners that the notification list has changed
   }
 
   Future<List<Map<String, dynamic>>> getNotifications() async {
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
+    notifyListeners();
+    return _notificationsList;
+  }
+
+  Future<List<Map<String, dynamic>>> _loadNotificationsFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final notificationStrings = prefs.getStringList('notifications') ?? [];
     List<Map<String, dynamic>> parsedNotifications = [];
@@ -172,13 +181,22 @@ class NotificationService extends ChangeNotifier {
       }
     }
     await prefs.setStringList('notifications', updatedNotifications);
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
     _unreadCount = 0; // Reset unread count
     notifyListeners(); // Notify listeners that the notification list has changed
   }
 
   Future<void> _updateUnreadCount() async {
-    final notifications = await getNotifications();
-    _unreadCount = notifications.where((n) => n['read'] == false).length;
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
+    _unreadCount = _notificationsList.where((n) => n['read'] == false).length;
+    notifyListeners();
+  }
+
+  Future<void> clearNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('notifications', []);
+    _notificationsList = [];
+    _unreadCount = 0;
     notifyListeners();
   }
 }
