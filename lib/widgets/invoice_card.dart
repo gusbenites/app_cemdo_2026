@@ -21,7 +21,10 @@ class InvoiceCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0), // Added horizontal padding
+        padding: const EdgeInsets.symmetric(
+          vertical: 12.0,
+          horizontal: 16.0,
+        ), // Added horizontal padding
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -58,7 +61,10 @@ class InvoiceCard extends StatelessWidget {
                       if (invoice.nroper != null && invoice.anio != null)
                         Text(
                           'Período: ${invoice.nroper}/${invoice.anio}',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
                         ),
                       Text(
                         'Vencimiento: ${invoice.fechaVto}',

@@ -11,15 +11,24 @@ class InvoiceProvider with ChangeNotifier {
   List<Invoice> get unpaidInvoices => _unpaidInvoices;
   List<Invoice> get allInvoices => _allInvoices; // Added
 
-  Future<void> fetchInvoices(String token, int idCliente, {bool showAll = false}) async { // Modified method signature
+  Future<void> fetchInvoices(
+    String token,
+    int idCliente, {
+    bool showAll = false,
+  }) async {
+    // Modified method signature
     final backendUrl = dotenv.env['BACKEND_URL'];
     if (backendUrl == null) {
       debugPrint('BACKEND_URL not configured.');
       return;
     }
 
-    String endpoint = showAll ? '/invoices' : '/invoices/unpaid'; // Determine endpoint
-    final url = Uri.parse('$backendUrl$endpoint?idcliente=$idCliente'); // Construct URL
+    String endpoint = showAll
+        ? '/invoices'
+        : '/invoices/unpaid'; // Determine endpoint
+    final url = Uri.parse(
+      '$backendUrl$endpoint?idcliente=$idCliente',
+    ); // Construct URL
     debugPrint('Fetching invoices from: $url');
     try {
       final response = await http.get(
@@ -30,18 +39,18 @@ class InvoiceProvider with ChangeNotifier {
         },
       );
 
-      debugPrint('Response status code: ${response.statusCode}');
-      debugPrint('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
         final List<dynamic> responseData = decodedResponse['data'];
-        List<Invoice> fetchedInvoices = responseData.map((json) => Invoice.fromJson(json)).toList();
-        debugPrint('Number of invoices fetched: ${fetchedInvoices.length}');
+        List<Invoice> fetchedInvoices = responseData
+            .map((json) => Invoice.fromJson(json))
+            .toList();
 
         if (showAll) {
           _allInvoices = fetchedInvoices;
-          _unpaidInvoices = fetchedInvoices.where((invoice) => invoice.isVencida).toList(); // Populate unpaid from all
+          _unpaidInvoices = fetchedInvoices
+              .where((invoice) => invoice.isVencida)
+              .toList(); // Populate unpaid from all
         } else {
           _unpaidInvoices = fetchedInvoices;
           // If fetching only unpaid, we don't update _allInvoices from here

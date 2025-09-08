@@ -69,7 +69,9 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
 
   Future<void> _sharePdf() async {
     if (_pdfPath != null) {
-      await Share.shareXFiles([XFile(_pdfPath!)], text: 'Factura ${widget.nroFactura}');
+      await Share.shareXFiles([
+        XFile(_pdfPath!),
+      ], text: 'Factura ${widget.nroFactura}');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No hay PDF para compartir.')),
@@ -88,7 +90,9 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
       final directory = await getExternalStorageDirectory();
       if (directory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo acceder al directorio de descarga.')),
+          const SnackBar(
+            content: Text('No se pudo acceder al directorio de descarga.'),
+          ),
         );
         return;
       }
@@ -97,13 +101,13 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
       final originalFile = File(_pdfPath!);
       await originalFile.copy(newPath);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF descargado en: $newPath')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('PDF descargado en: $newPath')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al descargar el PDF: \$e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al descargar el PDF: \$e')));
     }
   }
 
@@ -126,12 +130,10 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(child: Text('Error: $_errorMessage'))
-              : _pdfPath != null
-                  ? PDFView(
-                      filePath: _pdfPath,
-                    )
-                  : const Center(child: Text('No se pudo cargar el PDF.')),
+          ? Center(child: Text('Error: $_errorMessage'))
+          : _pdfPath != null
+          ? PDFView(filePath: _pdfPath)
+          : const Center(child: Text('No se pudo cargar el PDF.')),
     );
   }
 }

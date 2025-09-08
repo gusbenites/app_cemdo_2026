@@ -1,16 +1,14 @@
 import 'package:app_cemdo/screens/registration_screen.dart';
-import 'package:app_cemdo/services/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:app_cemdo/models/user_model.dart';
 import 'dart:io'; // Import for SocketException
 import 'dart:async'; // Import for TimeoutException
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart'; // Added
 import 'package:app_cemdo/providers/account_provider.dart'; // Added
+import 'package:app_cemdo/providers/auth_provider.dart'; // Added
+import 'package:app_cemdo/exceptions/email_not_verified_exception.dart'; // New import
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _secureStorageService = SecureStorageService();
   bool _obscureText = true;
   bool _isLoading = false;
   PackageInfo? _packageInfo; // Made nullable
@@ -47,65 +44,64 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
 
-      final backendUrl = dotenv.env['BACKEND_URL'];
-      if (backendUrl == null) {
-        _showSnackBar('URL del backend no configurada.');
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final url = Uri.parse('$backendUrl/login');
-      final deviceName = 'mobile'; // You might want to get a unique device name
-
       try {
-        final response = await http
-            .post(
-              url,
-              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-              body: {
-                'email': _emailController.text,
-                'password': _passwordController.text,
-                'device_name': deviceName,
-              },
-            )
-            .timeout(const Duration(seconds: 10)); // Add a timeout
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.login(
+          _emailController.text,
+          _passwordController.text,
+        );
 
-        if (response.statusCode == 200) {
-          final responseData = jsonDecode(response.body);
-          final token = responseData['token'];
-          final user = User.fromJson(responseData['user']);
-
-          await _secureStorageService.storeLoginData(token, user);
-
-          // Get AccountProvider instance
-          final accountProvider = Provider.of<AccountProvider>(
-            context,
-            listen: false,
-          );
-          // Fetch accounts
-          await accountProvider.fetchAccounts(token);
-
-          Navigator.pushReplacementNamed(context, '/main');
-        } else {
-          final errorData = jsonDecode(response.body);
-          _showSnackBar(
-            errorData['message'] ??
-                'Error de inicio de sesión. Por favor, verifica tus credenciales.',
-          );
-        }
+        // If login is successful, navigate to main screen
+        if (!mounted) return;
+        final accountProvider = Provider.of<AccountProvider>(
+          context,
+          listen: false,
+        );
+        await accountProvider.fetchAccounts(
+          authProvider.token!,
+        ); // Fetch accounts after successful login
+        Navigator.pushReplacementNamed(context, '/main');
       } on SocketException {
+        if (!mounted) return; // Added check
         _showSnackBar(
           'Error de conexión: No se pudo conectar al servidor. Verifica tu conexión a internet.',
         );
       } on TimeoutException {
+        if (!mounted) return; // Added check
         _showSnackBar(
           'Error de conexión: El servidor tardó demasiado en responder. Inténtalo de nuevo.',
         );
+      } on EmailNotVerifiedException catch (e) { // Catch specific exception
+        if (!mounted) return; // Added check
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Verificación de Correo'),
+              content: Text('${e.message} Por favor, revisa tu bandeja de entrada para verificar tu correo.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Dismiss dialog
+                    // Optionally navigate to a dedicated verification screen
+                    Navigator.of(context).pushNamed('/verify_email');
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
       } catch (e) {
-        _showSnackBar('Ocurrió un error inesperado: $e');
+        if (!mounted) return; // Added check
+        String errorMessage = e.toString();
+        // Removed _showSnackBar call
+        // _showSnackBar(
+        //   'Ocurrió un error: ${errorMessage.replaceFirst('Exception: ', '')}',
+        // );
+        debugPrint('Ocurrió un error: ${errorMessage.replaceFirst('Exception: ', '')}');
       } finally {
+        if (!mounted) return; // Added check
         setState(() {
           _isLoading = false;
         });

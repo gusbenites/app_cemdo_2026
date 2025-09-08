@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:app_cemdo/models/user_model.dart';
+import 'package:flutter/foundation.dart'; // Added for debugPrint
 
 class SecureStorageService {
   final _storage = FlutterSecureStorage();
@@ -19,8 +20,11 @@ class SecureStorageService {
 
   Future<User?> getUser() async {
     final userJson = await _storage.read(key: _userKey);
+    debugPrint('SecureStorageService - userJson: $userJson');
     if (userJson != null) {
-      return User.fromJson(jsonDecode(userJson));
+      final decodedUser = jsonDecode(userJson);
+      debugPrint('SecureStorageService - decodedUser: $decodedUser');
+      return User.fromJson(decodedUser as Map<String, dynamic>);
     }
     return null;
   }

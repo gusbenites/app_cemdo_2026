@@ -18,7 +18,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
   bool _isChangingAccount = false; // Added
 
   Future<void> _showUnlinkConfirmationDialog(
-      BuildContext context, Account account, AccountProvider provider) async {
+    BuildContext context,
+    Account account,
+    AccountProvider provider,
+  ) async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -37,11 +40,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                const Text('¿Estás seguro de que quieres desvincular la cuenta?'),
+                const Text(
+                  '¿Estás seguro de que quieres desvincular la cuenta?',
+                ),
                 const SizedBox(height: 8),
-                Text(account.razonSocial, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  account.razonSocial,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
-                const Text('Esta acción no se puede deshacer.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                const Text(
+                  'Esta acción no se puede deshacer.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ],
             ),
           ),
@@ -55,9 +66,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
             ElevatedButton.icon(
               icon: const Icon(Icons.delete_forever, size: 18),
               label: const Text('Desvincular'),
-              onPressed: _isChangingAccount ? null : () {
-                _handleUnlinkAccount(account, provider);
-              },
+              onPressed: _isChangingAccount
+                  ? null
+                  : () {
+                      _handleUnlinkAccount(account, provider);
+                    },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.red,
@@ -70,62 +83,94 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   // New method to handle account tap
-  void _handleAccountTap(Account account, AccountProvider accountProvider) async {
-    setState(() { _isChangingAccount = true; }); // Set loading state
+  void _handleAccountTap(
+    Account account,
+    AccountProvider accountProvider,
+  ) async {
+    setState(() {
+      _isChangingAccount = true;
+    }); // Set loading state
     try {
       final token = await _secureStorageService.getToken();
       if (!mounted) return;
       if (token != null) {
-        final success = await accountProvider.changeActiveAccount(token, account.idcliente);
+        final success = await accountProvider.changeActiveAccount(
+          token,
+          account.idcliente,
+        );
         if (!mounted) return;
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cuenta activa cambiada con éxito.')),
           );
-          if (mounted) { // Reset loading state before navigation
-            setState(() { _isChangingAccount = false; });
+          if (mounted) {
+            // Reset loading state before navigation
+            setState(() {
+              _isChangingAccount = false;
+            });
           }
           if (!mounted) return; // Check mounted again before navigation
-          Navigator.of(context).pushReplacementNamed('/main'); // Navigate to main screen
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/main'); // Navigate to main screen
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Error al cambiar la cuenta activa.')),
           );
-          if (mounted) { // Only reset if still mounted and no navigation
-            setState(() { _isChangingAccount = false; });
+          if (mounted) {
+            // Only reset if still mounted and no navigation
+            setState(() {
+              _isChangingAccount = false;
+            });
           }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontró el token de autenticación.')),
+          const SnackBar(
+            content: Text('No se encontró el token de autenticación.'),
+          ),
         );
-        if (mounted) { // Only reset if still mounted and no navigation
-          setState(() { _isChangingAccount = false; });
+        if (mounted) {
+          // Only reset if still mounted and no navigation
+          setState(() {
+            _isChangingAccount = false;
+          });
         }
       }
     } catch (e) {
       debugPrint('Error in _handleAccountTap: $e');
-      if (mounted) { // Reset on error
-        setState(() { _isChangingAccount = false; });
+      if (mounted) {
+        // Reset on error
+        setState(() {
+          _isChangingAccount = false;
+        });
       }
     }
   }
 
   // New method to handle unlink account
   void _handleUnlinkAccount(Account account, AccountProvider provider) async {
-    setState(() { _isChangingAccount = true; }); // Set loading state
+    setState(() {
+      _isChangingAccount = true;
+    }); // Set loading state
     try {
       final token = await _secureStorageService.getToken();
       if (!mounted) return;
       if (token != null) {
-        final success = await provider.unlinkAccountApi(token, account.idcliente);
+        final success = await provider.unlinkAccountApi(
+          token,
+          account.idcliente,
+        );
         if (!mounted) return;
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cuenta desvinculada con éxito.')),
           );
-          if (mounted) { // Reset loading state before navigation
-            setState(() { _isChangingAccount = false; });
+          if (mounted) {
+            // Reset loading state before navigation
+            setState(() {
+              _isChangingAccount = false;
+            });
           }
           if (!mounted) return; // Check mounted again before navigation
           Navigator.of(context).pop(); // Close dialog
@@ -133,22 +178,33 @@ class _AccountsScreenState extends State<AccountsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Error al desvincular la cuenta.')),
           );
-          if (mounted) { // Only reset if still mounted and no navigation
-            setState(() { _isChangingAccount = false; });
+          if (mounted) {
+            // Only reset if still mounted and no navigation
+            setState(() {
+              _isChangingAccount = false;
+            });
           }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontró el token de autenticación.')),
+          const SnackBar(
+            content: Text('No se encontró el token de autenticación.'),
+          ),
         );
-        if (mounted) { // Only reset if still mounted and no navigation
-          setState(() { _isChangingAccount = false; });
+        if (mounted) {
+          // Only reset if still mounted and no navigation
+          setState(() {
+            _isChangingAccount = false;
+          });
         }
       }
     } catch (e) {
       debugPrint('Error in _handleUnlinkAccount: $e');
-      if (mounted) { // Reset on error
-        setState(() { _isChangingAccount = false; });
+      if (mounted) {
+        // Reset on error
+        setState(() {
+          _isChangingAccount = false;
+        });
       }
     }
   }
@@ -164,7 +220,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch button
+                  crossAxisAlignment:
+                      CrossAxisAlignment.stretch, // Stretch button
                   children: [
                     const Text(
                       'Cuentas Vinculadas',
@@ -217,25 +274,43 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 ),
                               )
                             : ListView.separated(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0), // Padding for the list
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ), // Padding for the list
                                 itemCount: accountProvider.accounts.length,
                                 itemBuilder: (context, index) {
-                                  final account = accountProvider.accounts[index];
+                                  final account =
+                                      accountProvider.accounts[index];
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
                                     child: AccountListItem(
                                       account: account,
-                                      isActive: account.idcliente == accountProvider.activeAccount?.idcliente,
+                                      isActive:
+                                          account.idcliente ==
+                                          accountProvider
+                                              .activeAccount
+                                              ?.idcliente,
                                       onTap: _isChangingAccount
                                           ? null
                                           : () {
-                                              _handleAccountTap(account, accountProvider);
+                                              _handleAccountTap(
+                                                account,
+                                                accountProvider,
+                                              );
                                             },
-                                      onDelete: () => _showUnlinkConfirmationDialog(context, account, accountProvider),
+                                      onDelete: () =>
+                                          _showUnlinkConfirmationDialog(
+                                            context,
+                                            account,
+                                            accountProvider,
+                                          ),
                                     ),
                                   );
                                 },
-                                separatorBuilder: (context, index) => const Divider(indent: 16, endIndent: 16),
+                                separatorBuilder: (context, index) =>
+                                    const Divider(indent: 16, endIndent: 16),
                               ),
                       ),
                     ),
@@ -249,7 +324,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 builder: (context) => const LinkAccountDialog(),
                               );
                               if (success == true && mounted) {
-                                Navigator.of(context).pushReplacementNamed('/main');
+                                Navigator.of(
+                                  context,
+                                ).pushReplacementNamed('/main');
                               }
                             },
                       icon: const Icon(Icons.add_circle_outline),
@@ -271,9 +348,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               if (_isChangingAccount)
                 Container(
                   color: Colors.black.withOpacity(0.5),
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
             ],
           );

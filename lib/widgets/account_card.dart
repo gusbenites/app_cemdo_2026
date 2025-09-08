@@ -24,10 +24,7 @@ class AccountCard extends StatelessWidget {
             children: [
               const Text(
                 'Cuenta',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
               const SizedBox(height: 8),
               Text(
@@ -41,10 +38,7 @@ class AccountCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Usuario: ${account.idcliente}',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ],
           ),

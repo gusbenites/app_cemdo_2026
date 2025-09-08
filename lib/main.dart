@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
 import 'services/secure_storage_service.dart';
+import 'package:app_cemdo/providers/auth_provider.dart'; // Added
 
 import 'widgets/about_dialog_widget.dart';
 import 'screens/notices_screen.dart'; // Added for NoticesScreen
@@ -16,6 +17,7 @@ import 'package:firebase_core/firebase_core.dart'; // Added for Firebase
 import 'package:firebase_messaging/firebase_messaging.dart'; // Added for Firebase Messaging
 import 'services/notification_service.dart'; // Added for Notification Service
 import 'package:shared_preferences/shared_preferences.dart'; // Added for SharedPreferences
+import 'screens/verify_email_screen.dart'; // New import
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -33,7 +35,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Initialize Firebase
   // Define the flavor, defaulting to 'development'
-  const String flavor = String.fromEnvironment('FLAVOR', defaultValue: 'development');
+  const String flavor = String.fromEnvironment(
+    'FLAVOR',
+    defaultValue: 'development',
+  );
   await dotenv.load(fileName: ".env.$flavor"); // Load the appropriate .env file
 
   // Temporarily clear old notifications for debugging
@@ -59,126 +64,25 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AccountProvider()),
         ChangeNotifierProvider(create: (_) => InvoiceProvider()), // Added
         ChangeNotifierProvider(create: (_) => NotificationService()), // Added
+        ChangeNotifierProvider(create: (_) => AuthProvider()), // Added
       ],
       child: MaterialApp(
         title: 'Portal CEMDO',
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: const AuthCheck(),
         debugShowCheckedModeBanner: false,
         routes: {
+          '/': (context) => const AuthCheck(), // Set AuthCheck as initial route
           '/main': (context) =>
               const MainScreen(), // Named route for MainScreen
           '/login': (context) =>
               const LoginScreen(), // Named route for LoginScreen
           '/accounts': (context) =>
               const AccountsScreen(), // Named route for AccountsScreen
+          '/verify_email': (context) =>
+              const VerifyEmailScreen(), // New named route
         },
       ),
     );
-  }
-}
-
-class AuthCheck extends StatefulWidget {
-  const AuthCheck({super.key});
-
-  @override
-  AuthCheckState createState() => AuthCheckState();
-}
-
-class AuthCheckState extends State<AuthCheck> {
-  bool _isLoading = true; // Added loading state
-  bool _isLoggedIn = false;
-  final _secureStorageService = SecureStorageService();
-
-  @override
-  void initState() {
-    super.initState();
-    _checkLoginStatus();
-  }
-
-  Future<void> _checkLoginStatus() async {
-    final token = await _secureStorageService.getToken();
-    final user = await _secureStorageService.getUser();
-
-    if (token != null && user != null) {
-      if (!mounted) return;
-      final accountProvider = Provider.of<AccountProvider>(
-        context,
-        listen: false,
-      );
-
-      // Fetch accounts on app start
-      await accountProvider.fetchAccounts(token);
-
-      if (!mounted) return;
-      // Set the active account if ultimoIdCliente is defined and accounts are available
-      if (user.ultimoIdCliente != null && accountProvider.accounts.isNotEmpty) {
-        Account? activeAccount;
-        try {
-          activeAccount = accountProvider.accounts.firstWhere(
-            (acc) => acc.idcliente == user.ultimoIdCliente,
-          );
-        } catch (e) {
-          debugPrint('Active account not found: $e');
-        }
-
-        if (activeAccount != null) {
-          accountProvider.setActiveAccount(activeAccount);
-        }
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _isLoggedIn = true;
-        _isLoading = false; // Set loading to false after check
-      });
-      // Send FCM token to backend after successful login
-      NotificationService().sendFcmTokenToBackend(
-        user.id.toString(),
-      ); // Assuming user.id is available and can be converted to String
-    } else {
-      if (!mounted) return;
-      setState(() {
-        _isLoggedIn = false;
-        _isLoading = false; // Set loading to false if not logged in
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[700]!, Colors.blue[900]!],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/images/logo_cemdo.png', height: 120),
-                const SizedBox(height: 24),
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Cargando...',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    } else {
-      return _isLoggedIn ? const MainScreen() : const LoginScreen();
-    }
   }
 }
 
@@ -246,9 +150,11 @@ class MainScreenState extends State<MainScreen> {
                   builder: (context) => const AboutDialogWidget(),
                 );
               } else if (item == 'Cerrar Sesión') {
-                final secureStorageService = SecureStorageService();
-                await secureStorageService
-                    .deleteLoginData(); // Changed to deleteLoginData()
+                final authProvider = Provider.of<AuthProvider>(
+                  context,
+                  listen: false,
+                );
+                await authProvider.logout();
                 if (!mounted) return; // Added
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -324,6 +230,109 @@ class MainScreenState extends State<MainScreen> {
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         showUnselectedLabels: true,
+      ),
+    );
+  }
+}
+
+class AuthCheck extends StatefulWidget {
+  const AuthCheck({super.key});
+
+  @override
+  AuthCheckState createState() => AuthCheckState();
+}
+
+class AuthCheckState extends State<AuthCheck> {
+  final bool _isLoading = true; // Added loading state
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndNavigate(); // Call the new method to handle check and navigation
+  }
+
+  Future<void> _checkAndNavigate() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.checkLoginStatus();
+
+    if (!mounted) return;
+
+    String nextRoute;
+    if (authProvider.token != null && authProvider.user != null) {
+      // Check if email is verified
+      if (authProvider.user!.emailVerifiedAt == null) {
+        nextRoute = '/verify_email';
+      } else {
+        nextRoute = '/main';
+        final accountProvider = Provider.of<AccountProvider>(
+          context,
+          listen: false,
+        );
+
+        // Fetch accounts on app start
+        await accountProvider.fetchAccounts(authProvider.token!);
+
+        if (!mounted) return;
+        // Set the active account if ultimoIdCliente is defined and accounts are available
+        if (authProvider.user!.ultimoIdCliente != null &&
+            accountProvider.accounts.isNotEmpty) {
+          Account? activeAccount;
+          try {
+            activeAccount = accountProvider.accounts.firstWhere(
+              (acc) => acc.idcliente == authProvider.user!.ultimoIdCliente,
+            );
+          } catch (e) {
+            debugPrint('Active account not found: $e');
+          }
+
+          if (activeAccount != null) {
+            accountProvider.setActiveAccount(activeAccount);
+          }
+        }
+
+        // Send FCM token to backend after successful login
+        NotificationService().sendFcmTokenToBackend(
+          authProvider.user!.id.toString(),
+        ); // Assuming user.id is available and can be converted to String
+      }
+    } else {
+      nextRoute = '/login';
+    }
+
+    if (!mounted) return;
+    // Navigate after the build method has completed
+    Navigator.of(context).pushReplacementNamed(nextRoute);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Show loading indicator while checking status
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[700]!, Colors.blue[900]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/images/logo_cemdo.png', height: 120),
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Cargando...',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

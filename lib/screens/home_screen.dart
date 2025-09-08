@@ -47,22 +47,39 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = await _secureStorageService.getToken();
       if (!mounted) return;
 
-      final accountProvider = Provider.of<AccountProvider>(context, listen: false);
-      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+      final accountProvider = Provider.of<AccountProvider>(
+        context,
+        listen: false,
+      );
+      final invoiceProvider = Provider.of<InvoiceProvider>(
+        context,
+        listen: false,
+      );
 
       if (token != null && accountProvider.activeAccount != null) {
-        _lastFetchedAccountId = accountProvider.activeAccount!.idcliente; // Update last fetched ID here
-        await invoiceProvider.fetchInvoices(token, accountProvider.activeAccount!.idcliente, showAll: false);
+        _lastFetchedAccountId = accountProvider
+            .activeAccount!
+            .idcliente; // Update last fetched ID here
+        await invoiceProvider.fetchInvoices(
+          token,
+          accountProvider.activeAccount!.idcliente,
+          showAll: false,
+        );
       } else {
         // If no active account or token, clear invoices
         invoiceProvider.allInvoices.clear(); // Clear all invoices
         invoiceProvider.unpaidInvoices.clear(); // Clear unpaid invoices
-        debugPrint('Token or active account is null. Cannot fetch invoices for Home Screen.');
+        debugPrint(
+          'Token or active account is null. Cannot fetch invoices for Home Screen.',
+        );
       }
     } catch (e) {
       debugPrint('Error fetching invoices in HomeScreen: $e');
       // Clear invoices on error
-      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+      final invoiceProvider = Provider.of<InvoiceProvider>(
+        context,
+        listen: false,
+      );
       invoiceProvider.allInvoices.clear();
       invoiceProvider.unpaidInvoices.clear();
     } finally {
@@ -79,15 +96,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer2<AccountProvider, InvoiceProvider>(
       builder: (context, accountProvider, invoiceProvider, child) {
         if (accountProvider.activeAccount == null) {
-          return const Center(child: Text('No hay una cuenta activa seleccionada.'));
+          return const Center(
+            child: Text('No hay una cuenta activa seleccionada.'),
+          );
         }
 
         if (_isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final List<Invoice> pendingAndOverdueInvoices = invoiceProvider.unpaidInvoices;
-        final int overdueCount = pendingAndOverdueInvoices.where((inv) => inv.isVencida).length;
+        final List<Invoice> pendingAndOverdueInvoices =
+            invoiceProvider.unpaidInvoices;
+        final int overdueCount = pendingAndOverdueInvoices
+            .where((inv) => inv.isVencida)
+            .length;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -135,11 +157,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               Chip(
                                 backgroundColor: Colors.red,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
+                                  horizontal: 8.0,
+                                  vertical: 4.0,
+                                ),
                                 label: Text(
                                   '$overdueCount VENCIDA(S)',
                                   style: const TextStyle(
-                                      color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                           ],
@@ -153,7 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               : ListView.separated(
                                   itemCount: pendingAndOverdueInvoices.length,
                                   itemBuilder: (context, index) {
-                                    final invoice = pendingAndOverdueInvoices[index];
+                                    final invoice =
+                                        pendingAndOverdueInvoices[index];
                                     return InvoiceCard(
                                       invoice: invoice,
                                       onTap: () {
@@ -168,7 +196,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                     );
                                   },
-                                  separatorBuilder: (context, index) => const Divider(),
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(),
                                 ),
                         ),
                       ],

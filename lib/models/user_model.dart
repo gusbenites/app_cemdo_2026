@@ -5,6 +5,7 @@ class User {
   final String? avatar;
   final int? ultimoIdCliente;
   final bool isAdmin;
+  final String? emailVerifiedAt; // New field
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     this.avatar,
     this.ultimoIdCliente,
     required this.isAdmin,
+    this.emailVerifiedAt, // New field
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class User {
       avatar: json['avatar'],
       ultimoIdCliente: json['ultimo_idcliente'],
       isAdmin: json['is_admin'] == 1,
+      emailVerifiedAt: json['email_verified_at'], // New field
     );
   }
 
@@ -34,6 +37,7 @@ class User {
       'avatar': avatar,
       'ultimo_idcliente': ultimoIdCliente,
       'is_admin': isAdmin ? 1 : 0,
+      'email_verified_at': emailVerifiedAt, // New field
     };
   }
 
@@ -44,6 +48,7 @@ class User {
     String? avatar,
     int? ultimoIdCliente,
     bool? isAdmin,
+    String? emailVerifiedAt, // New field
   }) {
     return User(
       id: id ?? this.id,
@@ -52,6 +57,7 @@ class User {
       avatar: avatar ?? this.avatar,
       ultimoIdCliente: ultimoIdCliente ?? this.ultimoIdCliente,
       isAdmin: isAdmin ?? this.isAdmin,
+      emailVerifiedAt: emailVerifiedAt ?? this.emailVerifiedAt, // New field
     );
   }
 }

@@ -118,23 +118,40 @@ class AccountProvider with ChangeNotifier {
         },
       );
 
-      debugPrint(
-        'Response status code: ${response.statusCode}',
-      ); // Added debug print
-      debugPrint('Response body: ${response.body}'); // Added debug print
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
         final List<dynamic> responseData =
             decodedResponse['data']; // Access the 'data' key
-        debugPrint('Parsed response data: $responseData'); // Added debug print
+
         _accounts = responseData.map((json) => Account.fromJson(json)).toList();
-        debugPrint(
-          'Number of accounts fetched: ${_accounts.length}',
-        ); // Added debug print
-        // Optionally set active account if there's only one or based on some logic
-        if (_accounts.isNotEmpty && _activeAccount == null) {
+
+        // Try to set active account based on stored ultimoIdCliente
+        final secureStorageService = SecureStorageService();
+        User? currentUser = await secureStorageService.getUser();
+
+        if (currentUser != null && currentUser.ultimoIdCliente != null) {
+          Account? foundAccount;
+          try {
+            foundAccount = _accounts.firstWhere(
+              (acc) => acc.idcliente == currentUser.ultimoIdCliente,
+            );
+          } catch (e) {
+            debugPrint(
+              'Stored active account not found in fetched accounts: $e',
+            );
+            // If the stored active account is not found, we can default to the first account
+            // or set to null if no accounts are available.
+            if (_accounts.isNotEmpty) {
+              foundAccount = _accounts.first;
+            } else {
+              foundAccount = null;
+            }
+          }
+          _activeAccount = foundAccount;
+        } else if (_accounts.isNotEmpty) {
           _activeAccount = _accounts.first;
+        } else {
+          _activeAccount = null; // No accounts available
         }
         notifyListeners();
       } else {
@@ -232,9 +249,6 @@ class AccountProvider with ChangeNotifier {
         },
         body: {'nro_usuario': nroUsuario, 'cuenta_agrupada': cuentaAgrupada},
       );
-
-      debugPrint('Link account response status code: ${response.statusCode}');
-      debugPrint('Link account response body: ${response.body}');
 
       if (response.statusCode == 200) {
         // If API call is successful, then refresh the accounts list

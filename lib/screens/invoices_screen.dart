@@ -32,7 +32,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // This is a better place to react to provider changes
-    final accountProvider = Provider.of<AccountProvider>(context); // Listen to changes
+    final accountProvider = Provider.of<AccountProvider>(
+      context,
+    ); // Listen to changes
     if (accountProvider.activeAccount?.idcliente != _lastFetchedAccountId) {
       _fetchInvoices();
     }
@@ -50,12 +52,24 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       final token = await _secureStorageService.getToken();
       if (!mounted) return;
 
-      final accountProvider = Provider.of<AccountProvider>(context, listen: false);
-      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+      final accountProvider = Provider.of<AccountProvider>(
+        context,
+        listen: false,
+      );
+      final invoiceProvider = Provider.of<InvoiceProvider>(
+        context,
+        listen: false,
+      );
 
       if (token != null && accountProvider.activeAccount != null) {
-        _lastFetchedAccountId = accountProvider.activeAccount!.idcliente; // Update last fetched ID here
-        await invoiceProvider.fetchInvoices(token, accountProvider.activeAccount!.idcliente, showAll: widget.showAll);
+        _lastFetchedAccountId = accountProvider
+            .activeAccount!
+            .idcliente; // Update last fetched ID here
+        await invoiceProvider.fetchInvoices(
+          token,
+          accountProvider.activeAccount!.idcliente,
+          showAll: widget.showAll,
+        );
       } else {
         // If no active account or token, clear invoices
         invoiceProvider.allInvoices.clear(); // Clear all invoices
@@ -65,11 +79,13 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     } catch (e) {
       debugPrint('Error fetching invoices in InvoicesScreen: $e');
       // Clear invoices on error
-      final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+      final invoiceProvider = Provider.of<InvoiceProvider>(
+        context,
+        listen: false,
+      );
       invoiceProvider.allInvoices.clear();
       invoiceProvider.unpaidInvoices.clear();
-    }
-    finally {
+    } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -81,19 +97,25 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   @override
   Widget build(BuildContext context) {
     // Removed sampleInvoices
-    return Consumer2<AccountProvider, InvoiceProvider>( // Use Consumer2 for multiple providers
+    return Consumer2<AccountProvider, InvoiceProvider>(
+      // Use Consumer2 for multiple providers
       builder: (context, accountProvider, invoiceProvider, child) {
         if (accountProvider.activeAccount == null) {
-          return const Center(child: Text('No hay una cuenta activa seleccionada.'));
+          return const Center(
+            child: Text('No hay una cuenta activa seleccionada.'),
+          );
         }
 
         if (_isLoading) {
-          return const Center(child: CircularProgressIndicator()); // Show loading indicator
+          return const Center(
+            child: CircularProgressIndicator(),
+          ); // Show loading indicator
         }
 
         // Determine which list of invoices to show based on showAll
         final List<Invoice> invoicesToShow = widget.showAll
-            ? invoiceProvider.allInvoices // Show all invoices
+            ? invoiceProvider
+                  .allInvoices // Show all invoices
             : invoiceProvider.unpaidInvoices; // Show only unpaid invoices
 
         return Column(
@@ -136,7 +158,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                         Expanded(
                           child: invoicesToShow.isEmpty
                               ? const Center(
-                                  child: Text('No hay facturas para mostrar.'), // Generic message
+                                  child: Text(
+                                    'No hay facturas para mostrar.',
+                                  ), // Generic message
                                 )
                               : ListView.separated(
                                   itemCount: invoicesToShow.length,
@@ -156,7 +180,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                       },
                                     );
                                   },
-                                  separatorBuilder: (context, index) => const Divider(),
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(),
                                 ),
                         ),
                       ],

@@ -7,6 +7,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added for .env access
 import 'package:flutter/foundation.dart'; // Added for debugPrint
 import 'package:app_cemdo/services/secure_storage_service.dart'; // Added for authentication token
 import 'package:flutter/material.dart'; // Added for ChangeNotifier
+import 'package:url_launcher/url_launcher.dart'; // Added for opening app settings
+import 'package:device_info_plus/device_info_plus.dart'; // Added for device info
+import 'dart:io'; // Added for Platform
 
 class NotificationService extends ChangeNotifier {
   static final NotificationService _instance = NotificationService._internal();
@@ -17,9 +20,43 @@ class NotificationService extends ChangeNotifier {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   int _unreadCount = 0;
   List<Map<String, dynamic>> _notificationsList = [];
+  bool _notificationsEnabled = false; // New: Track notification status
 
   int get unreadCount => _unreadCount;
   List<Map<String, dynamic>> get notifications => _notificationsList;
+  bool get notificationsEnabled =>
+      _notificationsEnabled; // New: Getter for status
+
+  Future<Map<String, String?>> _getDeviceInfo() async {
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    String? deviceName;
+    String? deviceId; // Using deviceId for unique identifier
+
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfoPlugin.androidInfo;
+      deviceName = androidInfo.model; // e.g. "SM-G981B"
+      // On Android 10 (API 29) and above, serial number is restricted.
+      // androidId is a common alternative for unique device identification.
+      deviceId = androidInfo.id; // Android ID
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfoPlugin.iosInfo;
+      deviceName = iosInfo.name; // e.g. "iPhone 11 Pro"
+      deviceId = iosInfo.identifierForVendor; // iOS unique identifier
+    } else if (Platform.isLinux) {
+      LinuxDeviceInfo linuxInfo = await deviceInfoPlugin.linuxInfo;
+      deviceName = linuxInfo.prettyName; // e.g. "Ubuntu 20.04 LTS"
+      deviceId = linuxInfo.machineId; // Linux machine ID
+    } else if (Platform.isMacOS) {
+      MacOsDeviceInfo macOsInfo = await deviceInfoPlugin.macOsInfo;
+      deviceName = macOsInfo.model; // e.g. "MacBookPro16,1"
+      deviceId = macOsInfo.systemGUID; // macOS system GUID
+    } else if (Platform.isWindows) {
+      WindowsDeviceInfo windowsInfo = await deviceInfoPlugin.windowsInfo;
+      deviceName = windowsInfo.computerName; // e.g. "MyComputer"
+      deviceId = windowsInfo.deviceId; // Windows device ID
+    }
+    return {'name': deviceName, 'id': deviceId};
+  }
 
   Future<void> initialize() async {
     // Request permission for notifications
@@ -36,6 +73,24 @@ class NotificationService extends ChangeNotifier {
     debugPrint(
       'User granted permission: ${settings.authorizationStatus == AuthorizationStatus.authorized}',
     );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      _notificationsEnabled = true;
+      debugPrint('Notifications are authorized.');
+    } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      _notificationsEnabled = false;
+      debugPrint(
+        'Notifications are denied. Please enable them in app settings.',
+      );
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.notDetermined) {
+      _notificationsEnabled = false;
+      debugPrint('Notifications permission not determined.');
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.provisional) {
+      _notificationsEnabled = true;
+      debugPrint('Notifications are provisionally authorized.');
+    }
 
     // Get the FCM token
     String? token = await _firebaseMessaging.getToken();
@@ -74,18 +129,61 @@ class NotificationService extends ChangeNotifier {
       // You can navigate to a specific screen here based on the message data
     });
     _updateUnreadCount(); // Initial load of unread count
+    notifyListeners(); // Notify listeners about the initial state
+  }
+
+  Future<void> toggleNotifications(bool enable) async {
+    if (enable) {
+      NotificationSettings settings = await _firebaseMessaging
+          .requestPermission(
+            alert: true,
+            announcement: false,
+            badge: true,
+            carPlay: false,
+            criticalAlert: false,
+            provisional: false,
+            sound: true,
+          );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        _notificationsEnabled = true;
+        // Subscribe to a general topic if you have one, or ensure auto-init is enabled
+        await _firebaseMessaging.subscribeToTopic('general_notifications');
+        debugPrint('Notifications enabled and subscribed to topic.');
+      } else {
+        _notificationsEnabled = false;
+        debugPrint('Notifications permission not granted by user.');
+      }
+    } else {
+      _notificationsEnabled = false;
+      // Unsubscribe from all topics or disable auto-init
+      await _firebaseMessaging.unsubscribeFromTopic('general_notifications');
+      debugPrint('Notifications disabled and unsubscribed from topic.');
+    }
+    notifyListeners(); // Notify listeners about the change
+  }
+
+  Future<void> openAppSettings() async {
+    if (await canLaunchUrl(Uri.parse('app-settings:'))) {
+      await launchUrl(Uri.parse('app-settings:'));
+    } else {
+      debugPrint('Could not open app settings.');
+      // Fallback for iOS if 'app-settings:' scheme doesn't work
+      // For Android, it usually works. For iOS, it might need specific URL schemes.
+      // Consider showing a dialog to manually guide the user.
+    }
   }
 
   Future<void> sendFcmTokenToBackend(String userId) async {
-    String? token = await _firebaseMessaging.getToken();
-    if (token == null) {
-      debugPrint('FCM Token is null, cannot send to backend.');
-      return;
-    }
+    String? fcmToken = await _firebaseMessaging.getToken();
 
     final String backendUrl = '${dotenv.env['BACKEND_URL']!}/fcm-token';
     final secureStorageService = SecureStorageService();
     final authToken = await secureStorageService.getToken();
+    final deviceInfo = await _getDeviceInfo(); // Get device info map
+    final deviceName = deviceInfo['name'];
+    final deviceId = deviceInfo['id']; // Get device ID
 
     if (authToken == null) {
       debugPrint('Auth token is null, cannot send FCM token to backend.');
@@ -99,7 +197,11 @@ class NotificationService extends ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer $authToken',
         },
-        body: {'token': token},
+        body: {
+          'fcm_token': fcmToken,
+          'device_name': deviceName ?? 'Unknown Device',
+          'device_id': deviceId ?? 'Unknown ID', // Include device ID
+        },
       );
 
       if (response.statusCode == 200) {
@@ -132,13 +234,15 @@ class NotificationService extends ChangeNotifier {
     };
     notifications.add(jsonEncode(notification));
     await prefs.setStringList('notifications', notifications);
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
+        .toList();
     _unreadCount++; // Increment unread count
     notifyListeners(); // Notify listeners that the notification list has changed
   }
 
   Future<List<Map<String, dynamic>>> getNotifications() async {
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
+        .toList();
     notifyListeners();
     return _notificationsList;
   }
@@ -181,13 +285,15 @@ class NotificationService extends ChangeNotifier {
       }
     }
     await prefs.setStringList('notifications', updatedNotifications);
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
+        .toList();
     _unreadCount = 0; // Reset unread count
     notifyListeners(); // Notify listeners that the notification list has changed
   }
 
   Future<void> _updateUnreadCount() async {
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed.toList();
+    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
+        .toList();
     _unreadCount = _notificationsList.where((n) => n['read'] == false).length;
     notifyListeners();
   }

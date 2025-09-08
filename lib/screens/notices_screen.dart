@@ -33,68 +33,97 @@ class _NoticesScreenState extends State<NoticesScreen> {
       body: Consumer<NotificationService>(
         builder: (context, notificationService, child) {
           final notifications = notificationService.notifications;
-          return RefreshIndicator(
-            onRefresh: () => notificationService.getNotifications(),
-            child: notifications.isEmpty
-                ? const Center(child: Text('No hay avisos para mostrar.'))
-                : ListView.builder(
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      final notification = notifications[index];
-                      String formattedDate = '';
-                      if (notification['timestamp'] != null) {
-                        try {
-                          final timestamp = DateTime.parse(
-                            notification['timestamp'],
-                          );
-                          formattedDate =
-                              '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
-                        } catch (e) {
-                          formattedDate = notification['timestamp'];
-                        }
-                      }
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+          return Column(
+            children: [
+              SwitchListTile(
+                title: const Text('Recibir Notificaciones'),
+                value: notificationService.notificationsEnabled,
+                onChanged: (bool value) async {
+                  await notificationService.toggleNotifications(value);
+                  if (value && !notificationService.notificationsEnabled) {
+                    // If user tried to enable but it's still false (permission denied)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                          'Permiso de notificaciones denegado. Por favor, habilítalo en la configuración de la aplicación.',
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                notification['title'] ?? 'Sin Título',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                        action: SnackBarAction(
+                          label: 'Abrir Configuración',
+                          onPressed: () {
+                            notificationService.openAppSettings();
+                          },
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () => notificationService.getNotifications(),
+                  child: notifications.isEmpty
+                      ? const Center(child: Text('No hay avisos para mostrar.'))
+                      : ListView.builder(
+                          itemCount: notifications.length,
+                          itemBuilder: (context, index) {
+                            final notification = notifications[index];
+                            String formattedDate = '';
+                            if (notification['timestamp'] != null) {
+                              try {
+                                final timestamp = DateTime.parse(
+                                  notification['timestamp'],
+                                );
+                                formattedDate =
+                                    '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+                              } catch (e) {
+                                formattedDate = notification['timestamp'];
+                              }
+                            }
+
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      notification['title'] ?? 'Sin Título',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      notification['body'] ?? 'Sin Contenido',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          formattedDate,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                notification['body'] ?? 'Sin Contenido',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    formattedDate,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

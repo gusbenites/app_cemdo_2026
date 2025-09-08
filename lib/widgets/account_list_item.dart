@@ -38,9 +38,7 @@ class AccountListItem extends StatelessWidget {
       onTap: onTap,
       selected: isActive,
       selectedTileColor: Colors.green.withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     );
   }
 }
