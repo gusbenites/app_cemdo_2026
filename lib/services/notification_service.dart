@@ -93,8 +93,12 @@ class NotificationService extends ChangeNotifier {
     }
 
     // Get the FCM token
-    String? token = await _firebaseMessaging.getToken();
-    debugPrint('******** FCM Token: $token');
+    try {
+      String? token = await _firebaseMessaging.getToken();
+      debugPrint('******** FCM Token: $token');
+    } catch (e) {
+      debugPrint('Error getting FCM token: $e');
+    }
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -176,7 +180,13 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> sendFcmTokenToBackend(String userId) async {
-    String? fcmToken = await _firebaseMessaging.getToken();
+    String? fcmToken;
+    try {
+      fcmToken = await _firebaseMessaging.getToken();
+    } catch (e) {
+      debugPrint('Error getting FCM token for backend: $e');
+      return;
+    }
 
     final String backendUrl = '${dotenv.env['BACKEND_URL']!}/fcm-token';
     final secureStorageService = SecureStorageService();
