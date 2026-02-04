@@ -112,101 +112,93 @@ class _HomeScreenState extends State<HomeScreen> {
             .where((inv) => inv.isVencida)
             .length;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.blue[900],
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20.0),
-                  bottomRight: Radius.circular(20.0),
+        return CustomScrollView(
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue[900],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20.0),
+                    bottomRight: Radius.circular(20.0),
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 8.0),
-                child: AccountCard(
-                  key: ValueKey(accountProvider.activeAccount!.idcliente),
-                  account: accountProvider.activeAccount!,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 8.0),
+                  child: AccountCard(
+                    key: ValueKey(accountProvider.activeAccount!.idcliente),
+                    account: accountProvider.activeAccount!,
+                  ),
                 ),
               ),
             ),
-            Expanded(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Facturas Pendientes',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (overdueCount > 0)
-                              Chip(
-                                backgroundColor: Colors.red,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                  vertical: 4.0,
-                                ),
-                                label: Text(
-                                  '$overdueCount VENCIDA(S)',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: pendingAndOverdueInvoices.isEmpty
-                              ? const Center(
-                                  child: Text('No hay facturas pendientes.'),
-                                )
-                              : ListView.separated(
-                                  itemCount: pendingAndOverdueInvoices.length,
-                                  itemBuilder: (context, index) {
-                                    final invoice =
-                                        pendingAndOverdueInvoices[index];
-                                    return InvoiceCard(
-                                      invoice: invoice,
-                                      onTap: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) => PdfViewScreen(
-                                              idcbte: invoice.idcbte.toString(),
-                                              nroFactura: invoice.nroFactura,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  separatorBuilder: (context, index) =>
-                                      const Divider(),
-                                ),
-                        ),
-                      ],
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Facturas Pendientes',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                    if (overdueCount > 0)
+                      Chip(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        label: Text(
+                          '$overdueCount VENCIDA(S)',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
+            pendingAndOverdueInvoices.isEmpty
+                ? SliverFillRemaining(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 100.0),
+                      child: const Center(
+                        child: Text('No hay facturas pendientes.'),
+                      ),
+                    ),
+                  )
+                : SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      if (index.isOdd) {
+                        return const Divider();
+                      }
+                      final invoiceIndex = index ~/ 2;
+                      final invoice = pendingAndOverdueInvoices[invoiceIndex];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: InvoiceCard(
+                          invoice: invoice,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => PdfViewScreen(
+                                  idcbte: invoice.idcbte.toString(),
+                                  nroFactura: invoice.nroFactura,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }, childCount: pendingAndOverdueInvoices.length * 2 - 1),
+                  ),
           ],
         );
       },
