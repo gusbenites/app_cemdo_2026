@@ -1,4 +1,4 @@
-import 'package:app_cemdo/models/account_model.dart';
+import 'package:app_cemdo/data/models/account_model.dart';
 import 'package:flutter/material.dart';
 
 class AccountListItem extends StatelessWidget {

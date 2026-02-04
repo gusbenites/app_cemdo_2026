@@ -1,4 +1,4 @@
-import 'package:app_cemdo/screens/registration_screen.dart';
+import 'package:app_cemdo/ui/screens/registration_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -6,8 +6,8 @@ import 'dart:io'; // Import for SocketException
 import 'dart:async'; // Import for TimeoutException
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart'; // Added
-import 'package:app_cemdo/providers/account_provider.dart'; // Added
-import 'package:app_cemdo/providers/auth_provider.dart'; // Added
+import 'package:app_cemdo/logic/providers/account_provider.dart'; // Added
+import 'package:app_cemdo/logic/providers/auth_provider.dart'; // Added
 import 'package:app_cemdo/exceptions/email_not_verified_exception.dart'; // New import
 
 class LoginScreen extends StatefulWidget {

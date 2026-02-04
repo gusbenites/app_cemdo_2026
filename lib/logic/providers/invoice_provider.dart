@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:app_cemdo/models/invoice_model.dart';
+import 'package:app_cemdo/data/models/invoice_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';

@@ -59,6 +59,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.4.6
+  mocktail: ^1.0.4
 
 flutter_native_splash:
   # This package generates native code to customize Flutter's default white native splash screen

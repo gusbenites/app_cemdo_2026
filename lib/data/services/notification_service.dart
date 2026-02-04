@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http; // Added for HTTP requests
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added for .env access
 import 'package:flutter/foundation.dart'; // Added for debugPrint
-import 'package:app_cemdo/services/secure_storage_service.dart'; // Added for authentication token
+import 'package:app_cemdo/data/services/secure_storage_service.dart'; // Added for authentication token
 import 'package:flutter/material.dart'; // Added for ChangeNotifier
 import 'package:url_launcher/url_launcher.dart'; // Added for opening app settings
 import 'package:device_info_plus/device_info_plus.dart'; // Added for device info

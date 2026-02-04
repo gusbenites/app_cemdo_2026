@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app_cemdo/services/notification_service.dart';
+import 'package:app_cemdo/data/services/notification_service.dart';
 import 'package:provider/provider.dart';
 
 class NoticesScreen extends StatefulWidget {

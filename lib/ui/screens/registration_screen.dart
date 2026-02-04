@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:app_cemdo/providers/auth_provider.dart';
+import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:url_launcher/url_launcher.dart'; // Corrected import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:async'; // Import for TimeoutException

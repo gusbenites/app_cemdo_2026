@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:app_cemdo/providers/account_provider.dart';
-import 'package:app_cemdo/services/secure_storage_service.dart';
+import 'package:app_cemdo/logic/providers/account_provider.dart';
+import 'package:app_cemdo/data/services/secure_storage_service.dart';
 
 class LinkAccountDialog extends StatefulWidget {
   const LinkAccountDialog({super.key});

@@ -1,10 +1,10 @@
-import 'package:app_cemdo/models/account_model.dart';
-import 'package:app_cemdo/providers/account_provider.dart';
-import 'package:app_cemdo/widgets/account_list_item.dart';
+import 'package:app_cemdo/data/models/account_model.dart';
+import 'package:app_cemdo/logic/providers/account_provider.dart';
+import 'package:app_cemdo/ui/widgets/account_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:app_cemdo/services/secure_storage_service.dart'; // Added
-import 'package:app_cemdo/widgets/link_account_dialog.dart';
+import 'package:app_cemdo/data/services/secure_storage_service.dart'; // Added
+import 'package:app_cemdo/ui/widgets/link_account_dialog.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});

@@ -1,21 +1,23 @@
-import 'package:app_cemdo/models/invoice_model.dart';
-import 'package:app_cemdo/providers/account_provider.dart';
-import 'package:app_cemdo/widgets/account_card.dart';
-import 'package:app_cemdo/widgets/invoice_card.dart';
+import 'package:app_cemdo/logic/providers/account_provider.dart';
+import 'package:app_cemdo/data/models/invoice_model.dart';
+import 'package:app_cemdo/ui/widgets/account_card.dart';
+import 'package:app_cemdo/ui/widgets/invoice_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:app_cemdo/providers/invoice_provider.dart'; // Added
-import 'package:app_cemdo/services/secure_storage_service.dart'; // Added
-import 'package:app_cemdo/screens/pdf_view_screen.dart';
+import 'package:app_cemdo/logic/providers/invoice_provider.dart'; // Added
+import 'package:app_cemdo/data/services/secure_storage_service.dart'; // Added
+import 'package:app_cemdo/ui/screens/pdf_view_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class InvoicesScreen extends StatefulWidget {
+  final bool showAll;
+
+  const InvoicesScreen({super.key, this.showAll = false});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<InvoicesScreen> createState() => _InvoicesScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _InvoicesScreenState extends State<InvoicesScreen> {
   final SecureStorageService _secureStorageService = SecureStorageService();
   bool _isLoading = true; // To show loading indicator
   int? _lastFetchedAccountId; // Added
@@ -29,7 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final accountProvider = Provider.of<AccountProvider>(context);
+    // This is a better place to react to provider changes
+    final accountProvider = Provider.of<AccountProvider>(
+      context,
+    ); // Listen to changes
     if (accountProvider.activeAccount?.idcliente != _lastFetchedAccountId) {
       _fetchInvoices();
     }
@@ -63,18 +68,16 @@ class _HomeScreenState extends State<HomeScreen> {
         await invoiceProvider.fetchInvoices(
           token,
           accountProvider.activeAccount!.idcliente,
-          showAll: false,
+          showAll: widget.showAll,
         );
       } else {
         // If no active account or token, clear invoices
         invoiceProvider.allInvoices.clear(); // Clear all invoices
         invoiceProvider.unpaidInvoices.clear(); // Clear unpaid invoices
-        debugPrint(
-          'Token or active account is null. Cannot fetch invoices for Home Screen.',
-        );
+        debugPrint('Token or active account is null. Cannot fetch invoices.');
       }
     } catch (e) {
-      debugPrint('Error fetching invoices in HomeScreen: $e');
+      debugPrint('Error fetching invoices in InvoicesScreen: $e');
       // Clear invoices on error
       final invoiceProvider = Provider.of<InvoiceProvider>(
         context,
@@ -93,7 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Removed sampleInvoices
     return Consumer2<AccountProvider, InvoiceProvider>(
+      // Use Consumer2 for multiple providers
       builder: (context, accountProvider, invoiceProvider, child) {
         if (accountProvider.activeAccount == null) {
           return const Center(
@@ -102,14 +107,16 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         if (_isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          ); // Show loading indicator
         }
 
-        final List<Invoice> pendingAndOverdueInvoices =
-            invoiceProvider.unpaidInvoices;
-        final int overdueCount = pendingAndOverdueInvoices
-            .where((inv) => inv.isVencida)
-            .length;
+        // Determine which list of invoices to show based on showAll
+        final List<Invoice> invoicesToShow = widget.showAll
+            ? invoiceProvider
+                  .allInvoices // Show all invoices
+            : invoiceProvider.unpaidInvoices; // Show only unpaid invoices
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,10 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 16.0),
-                child: AccountCard(
-                  key: ValueKey(accountProvider.activeAccount!.idcliente),
-                  account: accountProvider.activeAccount!,
-                ),
+                child: AccountCard(account: accountProvider.activeAccount!),
               ),
             ),
             Expanded(
@@ -143,45 +147,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Facturas Pendientes',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (overdueCount > 0)
-                              Chip(
-                                backgroundColor: Colors.red,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                  vertical: 4.0,
-                                ),
-                                label: Text(
-                                  '$overdueCount VENCIDA(S)',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                          ],
+                        const Text(
+                          'Historial de Facturas',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Expanded(
-                          child: pendingAndOverdueInvoices.isEmpty
+                          child: invoicesToShow.isEmpty
                               ? const Center(
-                                  child: Text('No hay facturas pendientes.'),
+                                  child: Text(
+                                    'No hay facturas para mostrar.',
+                                  ), // Generic message
                                 )
                               : ListView.separated(
-                                  itemCount: pendingAndOverdueInvoices.length,
+                                  itemCount: invoicesToShow.length,
                                   itemBuilder: (context, index) {
-                                    final invoice =
-                                        pendingAndOverdueInvoices[index];
+                                    final invoice = invoicesToShow[index];
                                     return InvoiceCard(
                                       invoice: invoice,
                                       onTap: () {

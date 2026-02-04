@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
-import 'package:app_cemdo/models/user_model.dart';
+import 'package:app_cemdo/data/models/user_model.dart';
 import 'package:flutter/foundation.dart'; // Added for debugPrint
 
 class SecureStorageService {

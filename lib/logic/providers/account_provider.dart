@@ -1,10 +1,10 @@
-import 'package:app_cemdo/models/account_model.dart';
+import 'package:app_cemdo/data/models/account_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http; // Added
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added
 import 'dart:convert'; // Added for jsonDecode
-import 'package:app_cemdo/services/secure_storage_service.dart'; // Added
-import 'package:app_cemdo/models/user_model.dart'; // Added
+import 'package:app_cemdo/data/services/secure_storage_service.dart'; // Added
+import 'package:app_cemdo/data/models/user_model.dart'; // Added
 
 class AccountProvider with ChangeNotifier {
   Account? _activeAccount;
