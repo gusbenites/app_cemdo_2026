@@ -11,6 +11,8 @@ import 'package:app_cemdo/ui/screens/verify_email_screen.dart';
 import 'package:app_cemdo/ui/screens/main_screen.dart';
 import 'package:app_cemdo/ui/screens/auth_check_screen.dart';
 
+import 'package:app_cemdo/ui/utils/error_notification.dart';
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Portal CEMDO',
+        scaffoldMessengerKey: ErrorNotification.messengerKey,
         theme: ThemeData(primarySwatch: Colors.blue),
         debugShowCheckedModeBanner: false,
         routes: {

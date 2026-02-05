@@ -48,6 +48,7 @@ dependencies:
   flutter_app_badge: ^2.0.2
 
   path_provider: any
+  sentry_flutter: ^8.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

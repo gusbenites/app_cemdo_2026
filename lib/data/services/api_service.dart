@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:app_cemdo/data/services/error_service.dart';
 
 class ApiService {
   final http.Client _client = http.Client();
@@ -11,25 +12,43 @@ class ApiService {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer \$token',
+      if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
   Future<dynamic> get(String endpoint, {String? token}) async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/$endpoint'),
-      headers: _headers(token),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await _client.get(
+        Uri.parse('$_baseUrl/$endpoint'),
+        headers: _headers(token),
+      );
+      return _handleResponse(response);
+    } catch (e, stack) {
+      if (e is! ApiException) {
+        ErrorService().reportError(e, stack, 'ApiService.get connection error');
+      }
+      rethrow;
+    }
   }
 
   Future<dynamic> post(String endpoint, {dynamic body, String? token}) async {
-    final response = await _client.post(
-      Uri.parse('$_baseUrl/$endpoint'),
-      headers: _headers(token),
-      body: jsonEncode(body),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await _client.post(
+        Uri.parse('$_baseUrl/$endpoint'),
+        headers: _headers(token),
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stack) {
+      if (e is! ApiException) {
+        ErrorService().reportError(
+          e,
+          stack,
+          'ApiService.post connection error',
+        );
+      }
+      rethrow;
+    }
   }
 
   dynamic _handleResponse(http.Response response) {
@@ -37,10 +56,16 @@ class ApiService {
       if (response.body.isEmpty) return null;
       return jsonDecode(response.body);
     } else {
-      throw ApiException(
+      final exception = ApiException(
         message: _getErrorMessage(response),
         statusCode: response.statusCode,
       );
+      // We don't necessarily want to report every 4xx to Sentry,
+      // but maybe we want to log them or report 5xx.
+      if (response.statusCode >= 500) {
+        ErrorService().reportError(exception, null, 'ApiService server error');
+      }
+      throw exception;
     }
   }
 
