@@ -21,52 +21,94 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 1. Get Flavor and Load Environment IMMEDIATELY
+  // This is critical. If this fails, we want to know why.
+  const String flavor = String.fromEnvironment(
+    'FLAVOR',
+    defaultValue: 'development',
+  );
+
   try {
-    WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp(); // Initialize Firebase
-    // Define the flavor, defaulting to 'development'
-    const String flavor = String.fromEnvironment(
-      'FLAVOR',
-      defaultValue: 'development',
-    );
-    await dotenv.load(
-      fileName: ".env.$flavor",
-    ); // Load the appropriate .env file
+    debugPrint("🚀 Iniciando App en modo: $flavor");
+    await dotenv.load(fileName: ".env.$flavor");
+    debugPrint("✅ Entorno cargado (.env.$flavor)");
+  } catch (e) {
+    debugPrint("❌ ERROR FATAL cargando entorno: $e");
+    // If environment fails, we still try to run the app to show an error UI if possible,
+    // but many things will likely fail.
+  }
 
-    // Initialize Error Service
+  // 2. Initialize Firebase (Essential for Messaging and Core)
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+      debugPrint("✅ Firebase inicializado");
+    }
+  } catch (e) {
+    debugPrint("⚠️ Advertencia Firebase: $e");
+    // Firebase failure is not always fatal, but should be noted.
+  }
+
+  // 3. Initialize Error Service (Sentry)
+  try {
     final String sentryDsn = dotenv.env['SENTRY_DSN'] ?? '';
-    await ErrorService().init(dsn: sentryDsn, environment: flavor);
+    if (sentryDsn.isNotEmpty) {
+      await ErrorService().init(dsn: sentryDsn, environment: flavor);
+      debugPrint("✅ Sentry inicializado");
+    } else {
+      debugPrint("ℹ️ Sentry DSN no encontrado, omitiendo...");
+    }
+  } catch (e) {
+    debugPrint("⚠️ Advertencia ErrorService: $e");
+  }
 
-    // Global Error Handlers
-    FlutterError.onError = (details) {
-      FlutterError.presentError(details);
-      ErrorService().reportError(
-        details.exception,
-        details.stack,
-        'FlutterError.onError',
-      );
-    };
+  // 4. Global Error Handlers
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    ErrorService().reportError(
+      details.exception,
+      details.stack,
+      'FlutterError.onError',
+    );
+  };
 
-    PlatformDispatcher.instance.onError = (error, stack) {
-      ErrorService().reportError(error, stack, 'PlatformDispatcher.onError');
-      return true;
-    };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    ErrorService().reportError(error, stack, 'PlatformDispatcher.onError');
+    return true;
+  };
 
-    // Temporarily clear old notifications for debugging
+  // 5. Start the App
+  runApp(const MyApp());
+
+  // 6. Initialize Non-Critical Services in background
+  _initializeBackgroundServices();
+}
+
+Future<void> _initializeBackgroundServices() async {
+  try {
+    // SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('notifications'); // Clear the key
+    await prefs.remove('notifications');
 
-    // Initialize Notification Service
+    // Only proceed with Firebase-related services if Firebase is initialized
+    if (Firebase.apps.isNotEmpty) {
+      // Register background message handler
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+    } else {
+      debugPrint(
+        'Firebase not initialized, skipping background message handler registration.',
+      );
+    }
+
+    // Notification Service (Delayed to ensure UI is up)
+    // The service itself now handles Firebase unavailability internaly
     await NotificationService().initialize();
-
-    // Register background message handler
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    runApp(const MyApp());
   } catch (e, stack) {
-    debugPrint("🔥 ERROR CRITICO EN MAIN: $e");
-    debugPrint(stack.toString());
-    // Report even if initialization fails half-way
-    ErrorService().reportError(e, stack, 'Main initialization fail');
+    debugPrint("Background services error: $e");
+    ErrorService().reportError(e, stack, 'Background initialization error');
   }
 }

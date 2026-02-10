@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http; // Added for HTTP requests
@@ -17,7 +18,18 @@ class NotificationService extends ChangeNotifier {
 
   NotificationService._internal();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  FirebaseMessaging? _messaging;
+  FirebaseMessaging? get _firebaseMessaging {
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        _messaging ??= FirebaseMessaging.instance;
+      }
+    } catch (e) {
+      debugPrint('Error accessing FirebaseMessaging: $e');
+    }
+    return _messaging;
+  }
+
   int _unreadCount = 0;
   List<Map<String, dynamic>> _notificationsList = [];
   bool _notificationsEnabled = false; // New: Track notification status
@@ -59,45 +71,57 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    // Request permission for notifications
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-
-    debugPrint(
-      'User granted permission: ${settings.authorizationStatus == AuthorizationStatus.authorized}',
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      _notificationsEnabled = true;
-      debugPrint('Notifications are authorized.');
-    } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      _notificationsEnabled = false;
+    final messaging = _firebaseMessaging;
+    if (messaging == null) {
       debugPrint(
-        'Notifications are denied. Please enable them in app settings.',
+        'NotificationService: Firebase not initialized, skipping initialization.',
       );
-    } else if (settings.authorizationStatus ==
-        AuthorizationStatus.notDetermined) {
-      _notificationsEnabled = false;
-      debugPrint('Notifications permission not determined.');
-    } else if (settings.authorizationStatus ==
-        AuthorizationStatus.provisional) {
-      _notificationsEnabled = true;
-      debugPrint('Notifications are provisionally authorized.');
+      return;
     }
 
-    // Get the FCM token
+    // Request permission for notifications
     try {
-      String? token = await _firebaseMessaging.getToken();
-      debugPrint('******** FCM Token: $token');
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+
+      debugPrint(
+        'User granted permission: ${settings.authorizationStatus == AuthorizationStatus.authorized}',
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        _notificationsEnabled = true;
+        debugPrint('Notifications are authorized.');
+      } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        _notificationsEnabled = false;
+        debugPrint(
+          'Notifications are denied. Please enable them in app settings.',
+        );
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.notDetermined) {
+        _notificationsEnabled = false;
+        debugPrint('Notifications permission not determined.');
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.provisional) {
+        _notificationsEnabled = true;
+        debugPrint('Notifications are provisionally authorized.');
+      }
+
+      // Get the FCM token
+      try {
+        String? token = await messaging.getToken();
+        debugPrint('******** FCM Token: $token');
+      } catch (e) {
+        debugPrint('Error getting FCM token: $e');
+      }
     } catch (e) {
-      debugPrint('Error getting FCM token: $e');
+      debugPrint('Error during notification permission request: $e');
     }
 
     // Handle foreground messages
@@ -137,23 +161,25 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> toggleNotifications(bool enable) async {
+    final messaging = _firebaseMessaging;
+    if (messaging == null) return;
+
     if (enable) {
-      NotificationSettings settings = await _firebaseMessaging
-          .requestPermission(
-            alert: true,
-            announcement: false,
-            badge: true,
-            carPlay: false,
-            criticalAlert: false,
-            provisional: false,
-            sound: true,
-          );
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         _notificationsEnabled = true;
         // Subscribe to a general topic if you have one, or ensure auto-init is enabled
-        await _firebaseMessaging.subscribeToTopic('general_notifications');
+        await messaging.subscribeToTopic('general_notifications');
         debugPrint('Notifications enabled and subscribed to topic.');
       } else {
         _notificationsEnabled = false;
@@ -162,7 +188,7 @@ class NotificationService extends ChangeNotifier {
     } else {
       _notificationsEnabled = false;
       // Unsubscribe from all topics or disable auto-init
-      await _firebaseMessaging.unsubscribeFromTopic('general_notifications');
+      await messaging.unsubscribeFromTopic('general_notifications');
       debugPrint('Notifications disabled and unsubscribed from topic.');
     }
     notifyListeners(); // Notify listeners about the change
@@ -180,9 +206,17 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> sendFcmTokenToBackend(String userId) async {
+    final messaging = _firebaseMessaging;
+    if (messaging == null) {
+      debugPrint(
+        'NotificationService: Skipping token update, Firebase not initialized.',
+      );
+      return;
+    }
+
     String? fcmToken;
     try {
-      fcmToken = await _firebaseMessaging.getToken();
+      fcmToken = await messaging.getToken();
     } catch (e) {
       debugPrint('Error getting FCM token for backend: $e');
       return;

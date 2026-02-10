@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_cemdo/data/services/error_service.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   final http.Client _client = http.Client();
@@ -52,6 +53,11 @@ class ApiService {
   }
 
   dynamic _handleResponse(http.Response response) {
+    debugPrint(
+      'ApiService [${response.request?.method}] ${response.request?.url} - Status: ${response.statusCode}',
+    );
+    debugPrint('ApiService Response: ${response.body}');
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;
       return jsonDecode(response.body);

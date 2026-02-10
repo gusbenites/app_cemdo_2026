@@ -37,8 +37,25 @@ class AuthProvider with ChangeNotifier {
         body: {'email': email, 'password': password, 'device_name': deviceName},
       );
 
-      final token = responseData['token'];
-      final user = User.fromJson(responseData['user']);
+      debugPrint('AuthProvider.login raw response: $responseData');
+
+      // Check if response is wrapped in 'data'
+      final data = (responseData is Map && responseData.containsKey('data'))
+          ? responseData['data']
+          : responseData;
+
+      if (data == null || data is! Map) {
+        throw Exception('Respuesta de login inválida: se esperaba un objeto.');
+      }
+
+      final token = data['token'];
+      final userMap = data['user'];
+
+      if (token == null || userMap == null) {
+        throw Exception('Token o usuario ausentes en la respuesta.');
+      }
+
+      final user = User.fromJson(userMap);
       await _saveLoginData(token, user);
     } catch (e) {
       final errorMessage = e.toString();
