@@ -12,6 +12,7 @@ import 'package:app_cemdo/ui/screens/login_screen.dart';
 import 'package:app_cemdo/ui/widgets/about_dialog_widget.dart';
 import 'package:app_cemdo/data/services/version_service.dart'; // Added
 import 'package:app_cemdo/ui/widgets/version_check_dialog.dart'; // Added
+import 'package:app_cemdo/ui/screens/suministros_screen.dart'; // Added
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -27,6 +28,7 @@ class MainScreenState extends State<MainScreen> {
   final _secureStorageService = SecureStorageService();
   static final List<Widget> _widgetOptions = <Widget>[
     const HomeScreen(),
+    const SuministrosScreen(), // Added
     const InvoicesScreen(showAll: true),
     const AccountsScreen(),
     const NoticesScreen(),
@@ -102,7 +104,7 @@ class MainScreenState extends State<MainScreen> {
     if (accountProvider.accounts.isEmpty || user?.ultimoIdCliente == null) {
       if (!mounted) return;
       setState(() {
-        _selectedIndex = 2; // Index for AccountsScreen
+        _selectedIndex = 3; // Index for AccountsScreen (updated from 2)
       });
     }
   }
@@ -296,6 +298,10 @@ class MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.handyman), // Icon for Suministros
+            label: 'Suministros',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.all_inbox),
             label: 'Facturas',

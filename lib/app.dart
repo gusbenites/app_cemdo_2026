@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/logic/providers/invoice_provider.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
+import 'package:app_cemdo/logic/providers/service_provider.dart'; // Added
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 import 'package:app_cemdo/data/services/notification_service.dart';
 import 'package:app_cemdo/ui/screens/accounts_screen.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => InvoiceProvider()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ServiceProvider()), // Added
       ],
       child: MaterialApp(
         title: 'Portal CEMDO',
