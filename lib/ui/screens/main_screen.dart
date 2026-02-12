@@ -34,6 +34,35 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _checkAccountStatusAndNavigate();
+
+    // Add listener to enforce notifications in real-time
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
+      notificationService.addListener(_handlePermissionChange);
+    });
+  }
+
+  void _handlePermissionChange() {
+    final notificationService = Provider.of<NotificationService>(
+      context,
+      listen: false,
+    );
+    if (!notificationService.notificationsEnabled && mounted) {
+      Navigator.of(context).pushReplacementNamed('/notification_permission');
+    }
+  }
+
+  @override
+  void dispose() {
+    // Note: Provider takes care of NotificationService disposal since it's in MultiProvider,
+    // but we should remove our specific listener if we added one.
+    // However, since NotificationService is a singleton in this app structure,
+    // we must manually remove the listener.
+    NotificationService().removeListener(_handlePermissionChange);
+    super.dispose();
   }
 
   Future<void> _checkAccountStatusAndNavigate() async {

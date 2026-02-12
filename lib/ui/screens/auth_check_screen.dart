@@ -20,6 +20,19 @@ class AuthCheckState extends State<AuthCheck> {
   }
 
   Future<void> _checkAndNavigate() async {
+    if (!mounted) return;
+    final notificationService = Provider.of<NotificationService>(
+      context,
+      listen: false,
+    );
+    await notificationService.checkPermissionStatus();
+
+    if (!notificationService.notificationsEnabled) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/notification_permission');
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.checkLoginStatus();
 

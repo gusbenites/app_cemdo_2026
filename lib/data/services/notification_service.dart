@@ -91,27 +91,7 @@ class NotificationService extends ChangeNotifier {
         sound: true,
       );
 
-      debugPrint(
-        'User granted permission: ${settings.authorizationStatus == AuthorizationStatus.authorized}',
-      );
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        _notificationsEnabled = true;
-        debugPrint('Notifications are authorized.');
-      } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        _notificationsEnabled = false;
-        debugPrint(
-          'Notifications are denied. Please enable them in app settings.',
-        );
-      } else if (settings.authorizationStatus ==
-          AuthorizationStatus.notDetermined) {
-        _notificationsEnabled = false;
-        debugPrint('Notifications permission not determined.');
-      } else if (settings.authorizationStatus ==
-          AuthorizationStatus.provisional) {
-        _notificationsEnabled = true;
-        debugPrint('Notifications are provisionally authorized.');
-      }
+      _updatePermissionStatus(settings.authorizationStatus);
 
       // Get the FCM token
       try {
@@ -157,7 +137,32 @@ class NotificationService extends ChangeNotifier {
       // You can navigate to a specific screen here based on the message data
     });
     _updateUnreadCount(); // Initial load of unread count
+    await checkPermissionStatus(); // Ensure initial status is set
     notifyListeners(); // Notify listeners about the initial state
+  }
+
+  void _updatePermissionStatus(AuthorizationStatus status) {
+    if (status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional) {
+      _notificationsEnabled = true;
+      debugPrint('Notifications authorized.');
+    } else {
+      _notificationsEnabled = false;
+      debugPrint('Notifications not authorized: $status');
+    }
+    notifyListeners();
+  }
+
+  Future<void> checkPermissionStatus() async {
+    final messaging = _firebaseMessaging;
+    if (messaging == null) return;
+
+    try {
+      NotificationSettings settings = await messaging.getNotificationSettings();
+      _updatePermissionStatus(settings.authorizationStatus);
+    } catch (e) {
+      debugPrint('Error checking notification settings: $e');
+    }
   }
 
   Future<void> toggleNotifications(bool enable) async {
