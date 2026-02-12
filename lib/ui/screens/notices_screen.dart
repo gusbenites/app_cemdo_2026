@@ -35,29 +35,6 @@ class _NoticesScreenState extends State<NoticesScreen> {
           final notifications = notificationService.notifications;
           return Column(
             children: [
-              SwitchListTile(
-                title: const Text('Recibir Notificaciones'),
-                value: notificationService.notificationsEnabled,
-                onChanged: (bool value) async {
-                  await notificationService.toggleNotifications(value);
-                  if (value && !notificationService.notificationsEnabled) {
-                    // If user tried to enable but it's still false (permission denied)
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Permiso de notificaciones denegado. Por favor, habilítalo en la configuración de la aplicación.',
-                        ),
-                        action: SnackBarAction(
-                          label: 'Abrir Configuración',
-                          onPressed: () {
-                            notificationService.openAppSettings();
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => notificationService.getNotifications(),
