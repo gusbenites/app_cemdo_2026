@@ -1,0 +1,8 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug-production.xcconfig"
+#include "Generated.xcconfig"
+
+// Production flavor configuration
+FLUTTER_BUILD_MODE=debug
+PRODUCT_BUNDLE_IDENTIFIER=com.cemdo.portal
+PRODUCT_NAME=Portal CEMDO
+ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon

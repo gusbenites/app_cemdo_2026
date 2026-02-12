@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.10+1
+version: 2.0.0+1
 
 environment:
   sdk: ^3.9.0
@@ -48,6 +48,7 @@ dependencies:
   flutter_app_badge: ^2.0.2
 
   path_provider: any
+  sentry_flutter: ^8.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -59,6 +60,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.4.6
+  mocktail: ^1.0.4
 
 flutter_native_splash:
   # This package generates native code to customize Flutter's default white native splash screen
