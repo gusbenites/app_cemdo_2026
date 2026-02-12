@@ -124,6 +124,10 @@ flutter_native_splash:
     # 768 pixels in diameter.  To fit a 1152x1152 image within a circle with a 768 diameter, simply 
     # ensure that the most important design elements of your image are placed within a circular area
     # with a 768 diameter at the center of the 1152x1152 canvas.
+    # Android 12+ icon guidelines:
+    # 1. Total image size: 1152x1152 pixels.
+    # 2. Safe zone (circular): 768 pixels diameter in the center.
+    # If the logo extends beyond this 768px circle, it will be clipped.
     image: assets/images/logo_cemdo.png
 
     # Splash screen background color.
@@ -192,7 +196,7 @@ flutter_native_splash:
     # https://developer.apple.com/documentation/uikit/uiview/contentmode): scaleToFill,
     # scaleAspectFit, scaleAspectFill, center, top, bottom, left, right, topLeft, topRight,
     # bottomLeft, or bottomRight.
-    #ios_content_mode: center
+    ios_content_mode: scaleAspectFit
     #
     # web_image_mode can be one of the following modes: center, contain, stretch, and cover.
     #web_image_mode: center
