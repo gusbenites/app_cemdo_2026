@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:app_cemdo/data/models/service_model.dart';
 import 'package:app_cemdo/data/models/supply_model.dart';
-import 'package:app_cemdo/logic/providers/service_provider.dart';
-import 'package:app_cemdo/logic/providers/account_provider.dart';
-import 'package:app_cemdo/data/services/secure_storage_service.dart';
 
 class SupplyDetailsScreen extends StatefulWidget {
   final Service service;
@@ -16,55 +12,17 @@ class SupplyDetailsScreen extends StatefulWidget {
 }
 
 class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
-  final SecureStorageService _secureStorageService = SecureStorageService();
-  bool _isInit = true;
-
-  @override
-  void didChangeDependencies() {
-    if (_isInit) {
-      _fetchSupplies();
-      _isInit = false;
-    }
-    super.didChangeDependencies();
-  }
-
-  Future<void> _fetchSupplies() async {
-    final accountProvider = Provider.of<AccountProvider>(
-      context,
-      listen: false,
-    );
-    final serviceProvider = Provider.of<ServiceProvider>(
-      context,
-      listen: false,
-    );
-
-    if (accountProvider.activeAccount != null) {
-      final token = await _secureStorageService.getToken();
-      if (token != null) {
-        await serviceProvider.fetchSupplies(
-          token,
-          accountProvider.activeAccount!.idcliente,
-          widget.service.id,
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final supplies = widget.service.supplies;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.service.nombre),
-        backgroundColor: _getServiceColor(widget.service.tipo),
+        title: Text(widget.service.label),
+        backgroundColor: _getServiceColor(widget.service.tag),
       ),
-      body: Consumer<ServiceProvider>(
-        builder: (context, serviceProvider, child) {
-          if (serviceProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (serviceProvider.supplies.isEmpty) {
-            return Center(
+      body: supplies.isEmpty
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -73,26 +31,17 @@ class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
                   const Text(
                     'No se encontraron suministros para este servicio.',
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _fetchSupplies,
-                    child: const Text('Reintentar'),
-                  ),
                 ],
               ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: serviceProvider.supplies.length,
-            padding: const EdgeInsets.all(16.0),
-            itemBuilder: (context, index) {
-              final supply = serviceProvider.supplies[index];
-              return _buildSupplyCard(supply);
-            },
-          );
-        },
-      ),
+            )
+          : ListView.builder(
+              itemCount: supplies.length,
+              padding: const EdgeInsets.all(16.0),
+              itemBuilder: (context, index) {
+                final supply = supplies[index];
+                return _buildSupplyCard(supply);
+              },
+            ),
     );
   }
 
@@ -110,7 +59,7 @@ class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Suministro #${supply.nroSuministro}',
+                  'Suministro #${supply.nrosum}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -140,11 +89,32 @@ class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.info_outline, color: Colors.grey, size: 20),
+                const Icon(
+                  Icons.location_city_outlined,
+                  color: Colors.grey,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Servicio: ${supply.nombreServicio}',
+                    supply.localidad,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.category_outlined,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Categoría: ${supply.categoria}',
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ),
@@ -159,13 +129,15 @@ class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
   Widget _buildStatusChip(String estado) {
     Color color;
     switch (estado.toUpperCase()) {
+      case 'CONECTADO':
       case 'ACTIVO':
         color = Colors.green;
         break;
       case 'CON DEUDA':
+      case 'SUSPENDIDO':
         color = Colors.red;
         break;
-      case 'SUSPENDIDO':
+      case 'DESCONECTADO':
         color = Colors.orange;
         break;
       default:
@@ -190,16 +162,18 @@ class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
     );
   }
 
-  Color _getServiceColor(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'energia':
+  Color _getServiceColor(String tag) {
+    switch (tag.toUpperCase()) {
+      case 'E':
         return Colors.amber[700]!;
-      case 'agua':
+      case 'A':
         return Colors.blue;
-      case 'internet':
+      case 'I':
         return Colors.purple;
-      case 'sepelio':
+      case 'S':
         return Colors.grey;
+      case 'G':
+        return Colors.orange;
       default:
         return Colors.blue;
     }

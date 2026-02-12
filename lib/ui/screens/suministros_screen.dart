@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/service_provider.dart';
-import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 import 'package:app_cemdo/data/models/service_model.dart';
 
-import 'supply_details_screen.dart'; // Ensure correct relative import
+import 'supply_details_screen.dart';
 
 class SuministrosScreen extends StatefulWidget {
   const SuministrosScreen({super.key});
@@ -28,23 +27,13 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
   }
 
   Future<void> _fetchServices() async {
-    final accountProvider = Provider.of<AccountProvider>(
-      context,
-      listen: false,
-    );
     final serviceProvider = Provider.of<ServiceProvider>(
       context,
       listen: false,
     );
-
-    if (accountProvider.activeAccount != null) {
-      final token = await _secureStorageService.getToken();
-      if (token != null) {
-        await serviceProvider.fetchServices(
-          token,
-          accountProvider.activeAccount!.idcliente,
-        );
-      }
+    final token = await _secureStorageService.getToken();
+    if (token != null) {
+      await serviceProvider.fetchServices(token);
     }
   }
 
@@ -106,10 +95,10 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                     child: Row(
                       children: [
                         CircleAvatar(
-                          backgroundColor: _getServiceColor(service.tipo),
+                          backgroundColor: _getServiceColor(service.tag),
                           radius: 25,
                           child: Icon(
-                            _getServiceIcon(service.tipo),
+                            _getServiceIcon(service.tag),
                             color: Colors.white,
                             size: 28,
                           ),
@@ -120,7 +109,7 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                service.nombre,
+                                service.label,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -128,7 +117,7 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Toque para ver suministros',
+                                '${service.supplies.length} suministro(s)',
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,
@@ -154,31 +143,35 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
     );
   }
 
-  Color _getServiceColor(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'energia':
+  Color _getServiceColor(String tag) {
+    switch (tag.toUpperCase()) {
+      case 'E':
         return Colors.amber[700]!;
-      case 'agua':
+      case 'A':
         return Colors.blue;
-      case 'internet':
+      case 'I':
         return Colors.purple;
-      case 'sepelio':
+      case 'S':
         return Colors.grey;
+      case 'G':
+        return Colors.orange;
       default:
         return Colors.green;
     }
   }
 
-  IconData _getServiceIcon(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'energia':
+  IconData _getServiceIcon(String tag) {
+    switch (tag.toUpperCase()) {
+      case 'E':
         return Icons.lightbulb_outline;
-      case 'agua':
+      case 'A':
         return Icons.water_drop_outlined;
-      case 'internet':
+      case 'I':
         return Icons.wifi;
-      case 'sepelio':
+      case 'S':
         return Icons.church;
+      case 'G':
+        return Icons.local_gas_station;
       default:
         return Icons.design_services;
     }
