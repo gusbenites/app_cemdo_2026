@@ -10,6 +10,8 @@ import 'package:app_cemdo/ui/screens/accounts_screen.dart';
 import 'package:app_cemdo/ui/screens/notices_screen.dart';
 import 'package:app_cemdo/ui/screens/login_screen.dart';
 import 'package:app_cemdo/ui/widgets/about_dialog_widget.dart';
+import 'package:app_cemdo/data/services/version_service.dart'; // Added
+import 'package:app_cemdo/ui/widgets/version_check_dialog.dart'; // Added
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -34,6 +36,7 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _checkAccountStatusAndNavigate();
+    _checkAppVersion(); // Added
 
     // Add listener to enforce notifications in real-time
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -43,6 +46,29 @@ class MainScreenState extends State<MainScreen> {
       );
       notificationService.addListener(_handlePermissionChange);
     });
+  }
+
+  Future<void> _checkAppVersion() async {
+    final versionService = VersionService();
+    final result = await versionService.checkAppVersion();
+
+    if (result != null && mounted) {
+      final isUpdateAvailable = await versionService.isUpdateAvailable(
+        result.version,
+      );
+
+      if (mounted && (isUpdateAvailable || result.forceUpdate)) {
+        showDialog(
+          context: context,
+          barrierDismissible: !result.forceUpdate,
+          builder: (context) => VersionCheckDialog(
+            message: result.message,
+            storeUrl: result.storeUrl,
+            forceUpdate: result.forceUpdate,
+          ),
+        );
+      }
+    }
   }
 
   void _handlePermissionChange() {

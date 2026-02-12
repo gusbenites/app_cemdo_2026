@@ -10,6 +10,7 @@ import 'package:app_cemdo/data/services/secure_storage_service.dart'; // Added f
 import 'package:flutter/material.dart'; // Added for ChangeNotifier
 import 'package:url_launcher/url_launcher.dart'; // Added for opening app settings
 import 'package:device_info_plus/device_info_plus.dart'; // Added for device info
+import 'package:package_info_plus/package_info_plus.dart'; // Added for app version
 import 'dart:io'; // Added for Platform
 
 class NotificationService extends ChangeNotifier {
@@ -239,6 +240,9 @@ class NotificationService extends ChangeNotifier {
       return;
     }
 
+    final packageInfo = await PackageInfo.fromPlatform();
+    final appVersion = packageInfo.version;
+
     try {
       final response = await http.post(
         Uri.parse(backendUrl),
@@ -250,6 +254,7 @@ class NotificationService extends ChangeNotifier {
           'fcm_token': fcmToken,
           'device_name': deviceName ?? 'Unknown Device',
           'device_id': deviceId ?? 'Unknown ID', // Include device ID
+          'app_version': appVersion,
         },
       );
 
