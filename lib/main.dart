@@ -12,12 +12,15 @@ import 'package:flutter/foundation.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(); // Initialize Firebase for background messages
   debugPrint("Handling a background message: ${message.messageId}");
-  NotificationService().saveNotification(
-    message.notification?.title ?? 'No Title',
-    message.notification?.body ?? 'No Body',
-    message.data['tipo'] ?? 'general',
-    message.data['timestamp'] ?? DateTime.now().toIso8601String(),
-  );
+
+  if (message.notification != null) {
+    NotificationService().saveNotification(
+      message.notification!.title ?? 'No Title',
+      message.notification!.body ?? 'No Body',
+      message.data['tipo'] ?? 'general',
+      message.data['timestamp'] ?? DateTime.now().toIso8601String(),
+    );
+  }
 }
 
 void main() async {
