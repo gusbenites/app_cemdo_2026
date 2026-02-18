@@ -5,6 +5,8 @@ import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 
 import 'supply_details_screen.dart';
+import 'individual_supply_details_screen.dart';
+import 'generic_supply_details_screen.dart';
 
 class SuministrosScreen extends StatefulWidget {
   const SuministrosScreen({super.key});
@@ -105,13 +107,39 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(15),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            SupplyDetailsScreen(service: service),
-                      ),
-                    );
+                    if (service.supplies.length == 1) {
+                      final supply = service.supplies.first;
+                      if (service.id == 1 || service.id == 2) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => IndividualSupplyDetailsScreen(
+                              supply: supply,
+                              tag: service.tag,
+                              serviceId: service.id,
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GenericSupplyDetailsScreen(
+                              supply: supply,
+                              tag: service.tag,
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              SupplyDetailsScreen(service: service),
+                        ),
+                      );
+                    }
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),

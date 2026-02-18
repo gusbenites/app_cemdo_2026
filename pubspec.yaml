@@ -46,6 +46,10 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_local_notifications: ^19.4.1
   flutter_app_badge: ^2.0.2
+  fl_chart: ^0.70.0
+  google_maps_flutter: ^2.5.3
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
 
   path_provider: any
   sentry_flutter: ^8.0.0
