@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/service_provider.dart';
+import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 
 import 'supply_details_screen.dart';
@@ -15,14 +16,19 @@ class SuministrosScreen extends StatefulWidget {
 class _SuministrosScreenState extends State<SuministrosScreen> {
   final SecureStorageService _secureStorageService = SecureStorageService();
   bool _isInit = true;
+  int? _lastFetchedAccountId;
 
   @override
   void didChangeDependencies() {
-    if (_isInit) {
+    super.didChangeDependencies();
+    final accountProvider = Provider.of<AccountProvider>(context);
+    final activeAccountId = accountProvider.activeAccount?.idcliente;
+
+    if (_isInit || activeAccountId != _lastFetchedAccountId) {
       _fetchServices();
       _isInit = false;
+      _lastFetchedAccountId = activeAccountId;
     }
-    super.didChangeDependencies();
   }
 
   Future<void> _fetchServices() async {
@@ -30,9 +36,19 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
       context,
       listen: false,
     );
+    final accountProvider = Provider.of<AccountProvider>(
+      context,
+      listen: false,
+    );
+
     final token = await _secureStorageService.getToken();
-    if (token != null) {
-      await serviceProvider.fetchServices(token);
+    final activeAccount = accountProvider.activeAccount;
+
+    if (token != null && activeAccount != null) {
+      await serviceProvider.fetchServices(token, activeAccount.idcliente);
+    } else {
+      // Clear services if no account or token
+      serviceProvider.clearServices();
     }
   }
 
@@ -42,6 +58,14 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
       appBar: AppBar(title: const Text('Mis Servicios')),
       body: Consumer<ServiceProvider>(
         builder: (context, serviceProvider, child) {
+          final accountProvider = Provider.of<AccountProvider>(context);
+
+          if (accountProvider.activeAccount == null) {
+            return const Center(
+              child: Text('No hay una cuenta activa seleccionada.'),
+            );
+          }
+
           if (serviceProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }

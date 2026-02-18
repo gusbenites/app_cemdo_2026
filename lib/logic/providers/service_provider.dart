@@ -14,7 +14,7 @@ class ServiceProvider with ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  Future<void> fetchServices(String token) async {
+  Future<void> fetchServices(String token, int idCliente) async {
     final backendUrl = dotenv.env['BACKEND_URL'];
     if (backendUrl == null) {
       debugPrint('BACKEND_URL not configured.');
@@ -24,7 +24,7 @@ class ServiceProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final url = Uri.parse('$backendUrl/services');
+    final url = Uri.parse('$backendUrl/services?idcliente=$idCliente');
     debugPrint('Fetching services from: $url');
 
     try {
@@ -58,5 +58,10 @@ class ServiceProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void clearServices() {
+    _services = [];
+    notifyListeners();
   }
 }
