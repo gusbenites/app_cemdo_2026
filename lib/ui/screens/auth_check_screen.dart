@@ -91,22 +91,37 @@ class AuthCheckState extends State<AuthCheck> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/images/logo_cemdo.png', height: 120),
-              const SizedBox(height: 24),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/logo_cemdo.png', height: 120),
+                  const SizedBox(height: 24),
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Cargando...',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Cargando...',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+            Positioned(
+              bottom: 48,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Image.asset(
+                  'assets/images/branding_splash.png',
+                  height: 60, // Adjusted to fit branding well
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

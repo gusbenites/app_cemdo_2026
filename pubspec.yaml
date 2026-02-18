@@ -82,7 +82,7 @@ flutter_native_splash:
   # of your splash screen to a solid color.  Use background_image to set the background of your
   # splash screen to a png image.  This is useful for gradients. The image will be stretch to the
   # size of the app. Only one parameter can be used, color and background_image cannot both be set.
-  color: "#42a5f5"
+  color: "#1976D2"
   #background_image: "assets/background.png"
 
   # Optional parameters are listed below.  To enable a parameter, uncomment the line by removing
@@ -91,6 +91,9 @@ flutter_native_splash:
   # The image parameter allows you to specify an image used in the splash screen.  It must be a
   # png file and should be sized for 4x pixel density.
   image: assets/images/logo_cemdo.png
+  branding: assets/images/branding_splash.png
+  branding_mode: bottom
+  branding_bottom_padding: 48
 
   # The branding property allows you to specify an image used as branding in the splash screen.
   # It must be a png file. It is supported for Android, iOS and the Web.  For Android 12,
@@ -131,13 +134,13 @@ flutter_native_splash:
     image: assets/images/logo_cemdo.png
 
     # Splash screen background color.
-    color: "#42a5f5"
+    color: "#1976D2"
 
     # App icon background color.
     #icon_background_color: "#111111"
 
     # The branding property allows you to specify an image used as branding in the splash screen.
-    #branding: assets/dart.png
+    branding: assets/images/branding_splash.png
 
     # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
     # apply when the device is in dark mode. If they are not specified, the app will use the
@@ -154,11 +157,11 @@ flutter_native_splash:
 
     # Platform specific images can be specified with the following parameters, which will override
     # the respective parameter.  You may specify all, selected, or none of these parameters:
-    color_android: "#42a5f5"
+    color_android: "#1976D2"
     #color_dark_android: "#042a49"
-    #color_ios: "#42a5f5"
+    #color_ios: "#1976D2"
     #color_dark_ios: "#042a49"
-    #color_web: "#42a5f5"
+    #color_web: "#1976D2"
     #color_dark_web: "#042a49"
     image_android: assets/images/logo_cemdo.png
     #image_dark_android: assets/splash-invert-android.png
