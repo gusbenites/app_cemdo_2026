@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
-import 'package:url_launcher/url_launcher.dart'; // Corrected import
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:async'; // Import for TimeoutException
+import 'dart:async';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:app_cemdo/ui/utils/error_notification.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -22,7 +23,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
-  PackageInfo? _packageInfo; // Made nullable
+  PackageInfo? _packageInfo;
 
   @override
   void initState() {
@@ -37,10 +38,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     });
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  void _showSnackBar(String message, {bool isError = true}) {
+    ErrorNotification.showSnackBar(message, isError: isError);
   }
 
   Future<void> _register() async {
@@ -54,18 +53,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           _nameController.text,
           _emailController.text,
           _passwordController.text,
-          _confirmPasswordController.text, // passwordConfirmation
-          'mobile', // deviceName
+          _confirmPasswordController.text,
+          'mobile',
         );
-        _showSnackBar('Registro exitoso. Por favor, verifica tu email.');
+        _showSnackBar(
+          'Registro exitoso. Por favor, verifica tu email.',
+          isError: false,
+        );
         if (!mounted) return;
-        Navigator.of(context).pop(); // Go back to login screen
+        Navigator.of(context).pop();
       } catch (e) {
         _showSnackBar('Error al registrar: ${e.toString()}');
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -90,7 +94,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                color: Color.fromRGBO(255, 255, 255, 0.9), // Fixed deprecated
+                color: const Color.fromRGBO(255, 255, 255, 0.9),
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
@@ -327,7 +331,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                         ],
                       ),
-                      // Copyright and Version Info
                       if (_packageInfo != null)
                         Column(
                           children: [

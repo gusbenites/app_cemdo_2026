@@ -20,19 +20,12 @@ class VerifyEmailScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const Icon(
-                Icons.email_outlined,
-                size: 80,
-                color: Colors.blue,
-              ),
+              const Icon(Icons.email_outlined, size: 80, color: Colors.blue),
               const SizedBox(height: 24),
               const Text(
                 '¡Verifica tu correo electrónico!',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -42,12 +35,27 @@ class VerifyEmailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement resend verification email logic
-                  // authProvider.resendVerificationEmail();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Enlace de verificación reenviado.')),
-                  );
+                onPressed: () async {
+                  try {
+                    await authProvider.resendVerificationEmail();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Enlace de verificación reenviado.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al reenviar: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: const Text('Reenviar correo de verificación'),
               ),
@@ -55,8 +63,9 @@ class VerifyEmailScreen extends StatelessWidget {
               TextButton(
                 onPressed: () async {
                   await authProvider.logout();
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/login', (route) => false);
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil('/login', (route) => false);
                 },
                 child: const Text('Volver a Iniciar Sesión'),
               ),

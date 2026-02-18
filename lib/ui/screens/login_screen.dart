@@ -8,7 +8,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart'; // Added
 import 'package:app_cemdo/logic/providers/account_provider.dart'; // Added
 import 'package:app_cemdo/logic/providers/auth_provider.dart'; // Added
-import 'package:app_cemdo/exceptions/email_not_verified_exception.dart'; // New import
+import 'package:app_cemdo/exceptions/email_not_verified_exception.dart';
+import 'package:app_cemdo/ui/utils/error_notification.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -71,14 +72,17 @@ class _LoginScreenState extends State<LoginScreen> {
         _showSnackBar(
           'Error de conexión: El servidor tardó demasiado en responder. Inténtalo de nuevo.',
         );
-      } on EmailNotVerifiedException catch (e) { // Catch specific exception
+      } on EmailNotVerifiedException catch (e) {
+        // Catch specific exception
         if (!mounted) return; // Added check
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Verificación de Correo'),
-              content: Text('${e.message} Por favor, revisa tu bandeja de entrada para verificar tu correo.'),
+              content: Text(
+                '${e.message} Por favor, revisa tu bandeja de entrada para verificar tu correo.',
+              ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
@@ -99,7 +103,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // _showSnackBar(
         //   'Ocurrió un error: ${errorMessage.replaceFirst('Exception: ', '')}',
         // );
-        debugPrint('Ocurrió un error: ${errorMessage.replaceFirst('Exception: ', '')}');
+        debugPrint(
+          'Ocurrió un error: ${errorMessage.replaceFirst('Exception: ', '')}',
+        );
       } finally {
         if (!mounted) return; // Added check
         setState(() {
@@ -110,9 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ErrorNotification.showSnackBar(message);
   }
 
   @override

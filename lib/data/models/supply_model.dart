@@ -21,15 +21,22 @@ class Supply {
 
   factory Supply.fromJson(Map<String, dynamic> json) {
     return Supply(
-      idsuministro: json['idsuministro'],
-      nrosum: json['nrosum'],
-      nroorden: json['nroorden'],
-      direccion: json['direccion'],
-      localidad: json['localidad'],
-      estado: json['estado'],
-      estadoId: json['estado_id'],
-      categoria: json['categoria'],
+      idsuministro: _parseInt(json['idsuministro']),
+      nrosum: _parseInt(json['nrosum']),
+      nroorden: _parseInt(json['nroorden']),
+      direccion: json['direccion'] ?? '',
+      localidad: json['localidad'] ?? '',
+      estado: json['estado'] ?? '',
+      estadoId: _parseInt(json['estado_id']),
+      categoria: json['categoria'] ?? '',
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   Map<String, dynamic> toJson() {

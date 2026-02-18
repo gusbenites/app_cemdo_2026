@@ -10,7 +10,9 @@ class ErrorNotification {
         content: Text(message),
         backgroundColor: isError ? Colors.red.shade800 : Colors.green.shade800,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
+        duration: const Duration(
+          seconds: 4,
+        ), // Closes automatically after 4 seconds
         action: SnackBarAction(
           label: 'Cerrar',
           textColor: Colors.white,

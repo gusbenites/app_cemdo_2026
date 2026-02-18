@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/invoice_provider.dart'; // Added
 import 'package:app_cemdo/data/services/secure_storage_service.dart'; // Added
 import 'package:app_cemdo/ui/screens/pdf_view_screen.dart';
+import 'package:app_cemdo/ui/widgets/payment_action_card.dart'; // Added
 
 class InvoicesScreen extends StatefulWidget {
   final bool showAll;
@@ -190,6 +191,8 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                 ),
               ),
             ),
+            if (invoiceProvider.unpaidInvoices.isNotEmpty)
+              const PaymentActionCard(),
           ],
         );
       },

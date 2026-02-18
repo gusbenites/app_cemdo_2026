@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:app_cemdo/data/models/service_model.dart';
+import 'package:app_cemdo/data/services/error_service.dart';
 
 class ServiceProvider with ChangeNotifier {
   List<Service> _services = [];
@@ -40,11 +41,18 @@ class ServiceProvider with ChangeNotifier {
         final List<dynamic> responseData = decodedResponse['data'];
         _services = responseData.map((json) => Service.fromJson(json)).toList();
       } else {
-        debugPrint('Failed to load services: ${response.statusCode}');
+        final errorMsg = 'Failed to load services: ${response.statusCode}';
+        debugPrint(errorMsg);
+        ErrorService().reportError(
+          errorMsg,
+          null,
+          'ServiceProvider.fetchServices',
+        );
         _services = [];
       }
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error fetching services: $e');
+      ErrorService().reportError(e, stack, 'ServiceProvider.fetchServices');
       _services = [];
     } finally {
       _isLoading = false;

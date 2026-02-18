@@ -228,7 +228,14 @@ class NotificationService extends ChangeNotifier {
       return;
     }
 
-    final String backendUrl = '${dotenv.env['BACKEND_URL']!}/fcm-token';
+    final backendUrlEnv = dotenv.env['BACKEND_URL'];
+    if (backendUrlEnv == null) {
+      debugPrint(
+        'NotificationService: BACKEND_URL not configured, skipping token update.',
+      );
+      return;
+    }
+    final String backendUrl = '$backendUrlEnv/fcm-token';
     final secureStorageService = SecureStorageService();
     final authToken = await secureStorageService.getToken();
     final deviceInfo = await _getDeviceInfo(); // Get device info map

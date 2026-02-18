@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/service_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
-import 'package:app_cemdo/data/models/service_model.dart';
 
 import 'supply_details_screen.dart';
 

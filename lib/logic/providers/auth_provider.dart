@@ -3,6 +3,7 @@ import 'package:app_cemdo/data/services/api_service.dart';
 import 'package:app_cemdo/data/models/user_model.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 import 'package:app_cemdo/exceptions/email_not_verified_exception.dart';
+import 'package:app_cemdo/data/services/error_service.dart';
 
 class AuthProvider with ChangeNotifier {
   late final ApiService _apiService;
@@ -92,6 +93,20 @@ class AuthProvider with ChangeNotifier {
     _token = null;
     await _secureStorageService.deleteLoginData();
     notifyListeners();
+  }
+
+  Future<void> resendVerificationEmail() async {
+    try {
+      await _apiService.post('email/resend');
+    } catch (e, stack) {
+      debugPrint('Error resending verification email: $e');
+      ErrorService().reportError(
+        e,
+        stack,
+        'AuthProvider.resendVerificationEmail',
+      );
+      rethrow;
+    }
   }
 
   Future<void> checkLoginStatus() async {
