@@ -97,7 +97,10 @@ class AuthCheckState extends State<AuthCheck> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset('assets/images/logo_cemdo.png', height: 120),
+                  Image.asset(
+                    'assets/images/logo_cemdo_1156.png', // Use high-res version
+                    height: 120,
+                  ),
                   const SizedBox(height: 24),
                   const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -105,20 +108,41 @@ class AuthCheckState extends State<AuthCheck> {
                   const SizedBox(height: 16),
                   const Text(
                     'Cargando...',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
                 ],
               ),
             ),
-            Positioned(
+            const Positioned(
               bottom: 48,
               left: 0,
               right: 0,
-              child: Center(
-                child: Image.asset(
-                  'assets/images/branding_splash.png',
-                  height: 60, // Adjusted to fit branding well
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Portal CEMDO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Versión 2.0.0+1',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
