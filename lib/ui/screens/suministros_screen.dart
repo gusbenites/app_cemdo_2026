@@ -134,7 +134,10 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                   onTap: () {
                     if (service.supplies.length == 1) {
                       final supply = service.supplies.first;
-                      if (service.id == 1 || service.id == 2) {
+                      if (service.id == 1 ||
+                          service.id == 2 ||
+                          service.id == 3 ||
+                          service.id == 99) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(

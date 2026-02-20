@@ -125,7 +125,7 @@ Registers a Firebase Cloud Messaging token for push notifications.
 ### List Services
 **GET** `/api/v2/services`
 
-Returns a list of services (Energy, Water, etc.) grouped by type, containing their associated supplies.
+Returns a list of services grouped by type. The supplies within each service are refined to return only essential fields.
 
 **Response (200 OK):**
 ```json
@@ -138,163 +138,124 @@ Returns a list of services (Energy, Water, etc.) grouped by type, containing the
       "supplies": [
         {
           "idsuministro": 1001,
-          "nrosum": 12345,
-          "nroorden": 1,
-          "direccion": "San Martin 450",
+          "categoria": "Residencial",
+          "domicilio": "MZ.108 LOTE 15...",
           "localidad": "Villa Dolores",
-          "estado": "Conectado",
-          "estado_id": 1,
-          "categoria": "Residencial"
+          "estado": "NORMAL"
         }
       ]
     },
-    {
-      "id": 2,
-      "label": "Agua",
-      "tag": "A",
-      "supplies": [...]
-    }
-  ]
-}
+    ...
   ]
 }
 ```
 
+---
+
 ### Get Service Details
 **GET** `/api/v2/services/{id}`
 
-Returns detailed information about a specific supply (suministro), including meter data, consumption history, and geographic coordinates when available.
+Returns detailed information based on the service type (`idtipo_srv`).
 
 **Authentication:** Required (Bearer token)
 
 **Path Parameters:**
 - `id` (integer, required): The `idsuministro` of the supply to retrieve
 
-**Authorization:**
-- The supply must belong to one of the authenticated user's linked client accounts
-- Returns `404 Not Found` if the supply doesn't exist or doesn't belong to the user
+**Response Structures:**
 
-**Response (200 OK):**
+#### A. Energy (1), Water (2), and Unificado (99)
+Includes technical data, coordinates, and historical consumption.
+
 ```json
 {
   "data": {
-    "idsuministro": 1001,
-    "nrosum": 12345,
-    "nroorden": 1,
-    "direccion": "San Martin 450, Villa Dolores, Cordoba",
-    "localidad": "Villa Dolores",
-    "estado": "Conectado",
-    "estado_id": 1,
+    "idsuministro": 385178,
     "categoria": "Residencial",
-    "latitud": -31.945,
-    "longitud": -65.18,
-    "medidor": {
-      "id": 555,
-      "nro_serie": "987654321",
-      "modelo": "Monofasico",
-      "marca": "Hexing",
-      "tipo": "Digital",
-      "estado": "Activo"
+    "domicilio": "MZ.108 LOTE 15...",
+    "localidad": "VILLA DOLORES",
+    "estado": "NORMAL",
+    "coordenadas": {
+      "latitud": -31.94,
+      "longitud": -65.18
     },
-    "consumos_historicos": {
-      "2023": [
-        {
-          "periodo": 1,
-          "anio": 2023,
-          "consumo": 250.5
-        },
-        {
-          "periodo": 2,
-          "anio": 2023,
-          "consumo": 280.0
-        }
-      ],
-      "2024": [
-        {
-          "periodo": 1,
-          "anio": 2024,
-          "consumo": 300.0
-        }
-      ]
+    "medidor": {
+      "marca": "...",
+      "modelo": "...",
+      "numero": "..."
+    },
+    "consumos": {
+      "2024": [...],
+      "2025": [...]
     }
   }
 }
 ```
 
-**Important Notes:**
+#### B. Sepelios (3)
+Includes family group information and social service status summary.
 
-1. **Coordinates (latitud/longitud)**:
-   - Only available for **Energy** services (`idtipo_srv = 1`)
-   - Will be `null` for other service types (Water, Gas, Internet, etc.)
-   - Sourced from a separate GIS database with PostGIS geometry data
-
-2. **Meter Data (medidor)**:
-   - May be `null` if the supply doesn't have an associated meter
-   - Common for non-energy services
-
-3. **Consumption History (consumos_historicos)**:
-   - Available for both **Energy** and **Water** services
-   - Organized by year, then by period (month)
-   - `periodo`: 1-12 representing the month
-   - `consumo`: Numeric value in kWh (energy) or m³ (water)
-   - May be an empty object `{}` if no consumption data exists
-
-4. **For Chart Rendering**:
-   - Each year contains an array of 1-12 consumption records
-   - Sort by `periodo` to display Jan-Dec chronologically
-   - Handle missing periods (some months may not have data)
-   - Compare multiple years by iterating over the year keys
-
-**Error Responses:**
-
-**401 Unauthorized:**
 ```json
 {
-  "message": "Unauthenticated."
+  "data": {
+    "idsuministro": 303126,
+    "categoria": "Sepelios",
+    "domicilio": "...",
+    "grupo_familiar": [
+      {
+        "id": 1,
+        "apellido": "Perez",
+        "nombre": "Juan",
+        "parentesco": "Titular",
+        "3010": "HABILITADO",
+        "3210": "HABILITADO",
+        "3310": "INHABILITADO"
+      }
+    ],
+    "habilitados": {
+      "sepelio": true,
+      "ambulancia": true,
+      "enfermeria": false
+    }
+  }
 }
 ```
 
-**404 Not Found:**
-```json
-{
-  "message": "No query results for model [App\\Models\\Suministro]"
-}
-```
-Returned when:
-- The supply ID doesn't exist
-- The supply doesn't belong to any of the user's linked accounts
+---
+
+### Technical Notes
+
+1. **Service ID Mapping**:
+    - `1`: Energía
+    - `2`: Agua
+    - `3`: Sepelios
+    - `99`: Unificado (Mixed Energy and Water data)
+
+2. **Conditional Logic**:
+   - Technical data (`medidor`, `coordenadas`, `consumos`) is only served for types **1, 2, and 99**.
+   - Social data (`grupo_familiar`, `habilitados`) is only served for type **3**.
+
+3. **Coordinates Logic**:
+   - `coordenadas` object groups `latitud` and `longitud`.
+   - Fetched from the GIS database.
+
+4. **Consumption Logic**:
+   - Grouped by year for easier front-end processing.
+   - Includes data for the current year and the two previous years.
 
 **Example Usage (Flutter/Dart):**
 ```dart
-// Fetch supply details
-final response = await dio.get(
-  '/api/v2/services/1001',
-  options: Options(headers: {'Authorization': 'Bearer $token'})
-);
+// Check service type for UI rendering
+final idTipoSrv = data['idtipo_srv']; 
 
-final data = response.data['data'];
-
-// Check if coordinates are available
-if (data['latitud'] != null && data['longitud'] != null) {
-  // Display map with marker
-  showMap(data['latitud'], data['longitud']);
-}
-
-// Render consumption chart
-final consumos = data['consumos_historicos'];
-if (consumos.isNotEmpty) {
-  // Extract years for year selector
-  final years = consumos.keys.toList();
-  
-  // Get consumption data for selected year
-  final yearData = consumos[selectedYear];
-  
-  // Prepare chart data
-  final chartData = yearData.map((item) => 
-    ChartPoint(month: item['periodo'], value: item['consumo'])
-  ).toList();
-  
-  renderChart(chartData);
+if (idTipoSrv == 1 || idTipoSrv == 2 || idTipoSrv == 99) {
+  // Render technical details (Map, Meter, Charts)
+  final coords = data['coordenadas'];
+  final historicalData = data['consumos'];
+} else if (idTipoSrv == 3) {
+  // Render social details (Family Group, Status summary)
+  final family = data['grupo_familiar'];
+  final enabled = data['habilitados'];
 }
 ```
 

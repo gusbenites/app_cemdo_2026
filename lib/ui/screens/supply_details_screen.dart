@@ -56,7 +56,10 @@ class _SupplyDetailsScreenState extends State<SupplyDetailsScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          if (widget.service.id == 1 || widget.service.id == 2) {
+          if (widget.service.id == 1 ||
+              widget.service.id == 2 ||
+              widget.service.id == 3 ||
+              widget.service.id == 99) {
             Navigator.push(
               context,
               MaterialPageRoute(

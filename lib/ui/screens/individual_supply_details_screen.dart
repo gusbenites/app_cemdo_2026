@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:app_cemdo/data/models/supply_model.dart';
+import 'package:app_cemdo/logic/providers/auth_provider.dart';
+import 'package:app_cemdo/logic/providers/service_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:app_cemdo/logic/providers/auth_provider.dart';
-import 'package:app_cemdo/data/services/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -30,7 +30,7 @@ class _IndividualSupplyDetailsScreenState
     extends State<IndividualSupplyDetailsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
-  Map<String, dynamic>? _details;
+  SupplyDetails? _details;
 
   @override
   void initState() {
@@ -41,15 +41,18 @@ class _IndividualSupplyDetailsScreenState
   Future<void> _fetchDetails() async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final apiService = ApiService();
-      final response = await apiService.get(
-        'services/${widget.supply.idsuministro}',
-        token: authProvider.token,
+      final serviceProvider = Provider.of<ServiceProvider>(
+        context,
+        listen: false,
+      );
+      final details = await serviceProvider.fetchSupplyDetails(
+        authProvider.token!,
+        widget.supply.idsuministro,
       );
 
-      if (response != null && response['data'] != null) {
+      if (details != null) {
         setState(() {
-          _details = response['data'];
+          _details = details;
           _isLoading = false;
         });
       } else {
@@ -111,19 +114,31 @@ class _IndividualSupplyDetailsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoCard(),
-                  if (_details?['consumos_historicos'] != null &&
-                      (_details!['consumos_historicos'] is List) &&
-                      (_details!['consumos_historicos'] as List)
-                          .isNotEmpty) ...[
+                  if (_details!.consumos != null &&
+                      _details!.consumos!.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     _buildSectionTitle('Histórico de Consumos'),
                     const SizedBox(height: 16),
-                    _buildConsumptionChart(_details!['consumos_historicos']),
+                    _buildConsumptionChart(_details!.consumos!),
                   ],
-                  if (widget.serviceId == 1 &&
-                      _details?['latitud'] != null) ...[
+                  if (_details!.coordenadas?.latitud != null) ...[
                     const SizedBox(height: 24),
                     _buildMapPlaceholder(),
+                  ],
+                  if (widget.serviceId == 3 &&
+                      _details!.grupoFamiliar != null &&
+                      _details!.grupoFamiliar!.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Grupo Familiar'),
+                    const SizedBox(height: 16),
+                    _buildFamilyGroup(),
+                  ],
+                  if (widget.serviceId == 3 &&
+                      _details!.habilitados != null) ...[
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Estado de Servicios'),
+                    const SizedBox(height: 16),
+                    _buildEnabledServices(),
                   ],
                 ],
               ),
@@ -143,12 +158,14 @@ class _IndividualSupplyDetailsScreenState
   }
 
   Widget _buildInfoCard() {
-    final medidor = _details?['medidor'];
+    final medidor = _details?.medidor;
     String medidorText = 'Sin Medidor';
-    if (medidor != null) {
-      final marca = medidor['marca']?.toString() ?? '';
-      final modelo = medidor['modelo']?.toString() ?? '';
-      final serie = medidor['nro_serie']?.toString() ?? 'S/N';
+    if (medidor != null &&
+        medidor.numero.isNotEmpty &&
+        medidor.numero.toLowerCase() != 'null') {
+      final marca = medidor.marca;
+      final modelo = medidor.modelo;
+      final serie = medidor.numero;
       medidorText = '$marca $modelo'.trim();
       if (medidorText.isEmpty) medidorText = 'Medidor';
       medidorText += ' (Nº Serie: $serie)';
@@ -164,22 +181,27 @@ class _IndividualSupplyDetailsScreenState
             _buildDetailRow(
               Icons.location_on,
               'Domicilio',
-              widget.supply.direccion,
+              _details?.direccion ?? widget.supply.direccion,
             ),
             const Divider(),
             _buildDetailRow(
               Icons.location_city,
               'Localidad',
-              widget.supply.localidad,
+              _details?.localidad ?? widget.supply.localidad,
             ),
             const Divider(),
             _buildDetailRow(
               Icons.category,
               'Categoría',
-              _details?['categoria'] ?? widget.supply.categoria,
+              _details?.categoria ?? widget.supply.categoria,
             ),
-            const Divider(),
-            _buildDetailRow(Icons.speed, 'Medidor', medidorText),
+            if ((widget.serviceId == 1 ||
+                    widget.serviceId == 2 ||
+                    widget.serviceId == 99) ||
+                (medidorText != 'Sin Medidor' && widget.serviceId != 3)) ...[
+              const Divider(),
+              _buildDetailRow(Icons.speed, 'Medidor', medidorText),
+            ],
           ],
         ),
       ),
@@ -216,8 +238,10 @@ class _IndividualSupplyDetailsScreenState
     );
   }
 
-  Widget _buildConsumptionChart(dynamic historicalData) {
-    if (historicalData is! List || historicalData.isEmpty) {
+  Widget _buildConsumptionChart(
+    Map<String, List<ConsumptionData>> consumptionMap,
+  ) {
+    if (consumptionMap.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -235,19 +259,19 @@ class _IndividualSupplyDetailsScreenState
     final List<LineChartBarData> lines = [];
     final List<int> years = [];
 
-    for (var yearIndex = 0; yearIndex < historicalData.length; yearIndex++) {
-      final yearData = historicalData[yearIndex] as List<dynamic>;
+    // Sort years descending to show latest first in legend, but ascending for processing if needed
+    final sortedYears = consumptionMap.keys.toList()..sort();
+
+    for (var yearStr in sortedYears) {
+      final yearData = consumptionMap[yearStr]!;
       if (yearData.isEmpty) continue;
 
-      final currentYear = yearData.first['anio'] as int;
+      final currentYear = int.tryParse(yearStr) ?? 0;
       years.add(currentYear);
 
       final List<FlSpot> spots = [];
-      for (var i = 0; i < yearData.length; i++) {
-        final item = yearData[i];
-        final periodo = (item['periodo'] as num).toDouble();
-        final consumo = (item['consumo'] as num).toDouble();
-        spots.add(FlSpot(periodo, consumo));
+      for (var item in yearData) {
+        spots.add(FlSpot(item.periodo.toDouble(), item.consumo));
       }
       spots.sort((a, b) => a.x.compareTo(b.x));
 
@@ -260,7 +284,7 @@ class _IndividualSupplyDetailsScreenState
           color: color,
           barWidth: 2,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: false), // Hide dots to avoid clutter
+          dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
             color: color.withValues(alpha: 0.05),
@@ -406,8 +430,8 @@ class _IndividualSupplyDetailsScreenState
   }
 
   Widget _buildMapPlaceholder() {
-    final lat = _details?['latitud'];
-    final lng = _details?['longitud'];
+    final lat = _details?.coordenadas?.latitud;
+    final lng = _details?.coordenadas?.longitud;
 
     if (lat == null || lng == null) return const SizedBox.shrink();
 
@@ -497,6 +521,168 @@ class _IndividualSupplyDetailsScreenState
               borderRadius: BorderRadius.circular(10),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFamilyGroup() {
+    return Column(
+      children: _details!.grupoFamiliar!.map((member) {
+        return Card(
+          elevation: 2,
+          margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.blue[50],
+                      radius: 20,
+                      child: Text(
+                        member.parentesco.isNotEmpty
+                            ? member.parentesco.substring(0, 1).toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          color: Colors.blue[900],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${member.apellido}, ${member.nombre}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            member.parentesco,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildMemberConceptBadge(
+                      Icons.church_outlined,
+                      'Sepelio',
+                      member.sepelio,
+                    ),
+                    _buildMemberConceptBadge(
+                      Icons.medical_services_outlined,
+                      'Ambulancia',
+                      member.ambulancia,
+                    ),
+                    _buildMemberConceptBadge(
+                      Icons.local_hospital_outlined,
+                      'Enfermería',
+                      member.enfermeria,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMemberConceptBadge(IconData icon, String label, String status) {
+    final bool isHabilitado = status.toUpperCase() == 'HABILITADO';
+    final bool isInhabilitado = status.toUpperCase() == 'INHABILITADO';
+
+    Color color;
+    if (isHabilitado) {
+      color = Colors.green;
+    } else if (isInhabilitado) {
+      color = Colors.red;
+    } else {
+      color = Colors.grey;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: color,
+            fontWeight: isHabilitado ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          status.isEmpty ? 'N/A' : status,
+          style: TextStyle(fontSize: 9, color: color.withOpacity(0.8)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEnabledServices() {
+    final enabled = _details!.habilitados!;
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatusIndicator('Sepelio', enabled.sepelio),
+            _buildStatusIndicator('Ambulancia', enabled.ambulancia),
+            _buildStatusIndicator('Enfermería', enabled.enfermeria),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicator(String label, bool isEnabled) {
+    return Column(
+      children: [
+        Icon(
+          isEnabled ? Icons.check_circle : Icons.cancel,
+          color: isEnabled ? Colors.green : Colors.red,
+          size: 32,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ],
     );
