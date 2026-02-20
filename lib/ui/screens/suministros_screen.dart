@@ -7,6 +7,7 @@ import 'package:app_cemdo/data/services/secure_storage_service.dart';
 import 'supply_details_screen.dart';
 import 'individual_supply_details_screen.dart';
 import 'generic_supply_details_screen.dart';
+import 'package:app_cemdo/ui/utils/service_utils.dart';
 
 class SuministrosScreen extends StatefulWidget {
   const SuministrosScreen({super.key});
@@ -57,7 +58,31 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Servicios')),
+      appBar: AppBar(
+        title: Consumer<AccountProvider>(
+          builder: (context, accountProvider, child) {
+            final activeAccount = accountProvider.activeAccount;
+            if (activeAccount == null) return const Text('Suministros');
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Suministros de ${activeAccount.razonSocial}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(${activeAccount.idcliente})',
+                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
       body: Consumer<ServiceProvider>(
         builder: (context, serviceProvider, child) {
           final accountProvider = Provider.of<AccountProvider>(context);
@@ -146,10 +171,16 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                     child: Row(
                       children: [
                         CircleAvatar(
-                          backgroundColor: _getServiceColor(service.tag),
+                          backgroundColor: ServiceUtils.getServiceColor(
+                            service.tag,
+                            service.label,
+                          ),
                           radius: 25,
                           child: Icon(
-                            _getServiceIcon(service.tag),
+                            ServiceUtils.getServiceIcon(
+                              service.tag,
+                              service.label,
+                            ),
                             color: Colors.white,
                             size: 28,
                           ),
@@ -160,11 +191,13 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                service.label,
+                                'Suministro de ${service.label}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                                  fontSize: 16,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -192,39 +225,5 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
         },
       ),
     );
-  }
-
-  Color _getServiceColor(String tag) {
-    switch (tag.toUpperCase()) {
-      case 'E':
-        return Colors.amber[700]!;
-      case 'A':
-        return Colors.blue;
-      case 'I':
-        return Colors.purple;
-      case 'S':
-        return Colors.grey;
-      case 'G':
-        return Colors.orange;
-      default:
-        return Colors.green;
-    }
-  }
-
-  IconData _getServiceIcon(String tag) {
-    switch (tag.toUpperCase()) {
-      case 'E':
-        return Icons.lightbulb_outline;
-      case 'A':
-        return Icons.water_drop_outlined;
-      case 'I':
-        return Icons.wifi;
-      case 'S':
-        return Icons.church;
-      case 'G':
-        return Icons.local_gas_station;
-      default:
-        return Icons.design_services;
-    }
   }
 }

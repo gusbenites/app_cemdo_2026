@@ -176,7 +176,7 @@ class _IndividualSupplyDetailsScreenState
             _buildDetailRow(
               Icons.category,
               'Categoría',
-              widget.supply.categoria,
+              _details?['categoria'] ?? widget.supply.categoria,
             ),
             const Divider(),
             _buildDetailRow(Icons.speed, 'Medidor', medidorText),
