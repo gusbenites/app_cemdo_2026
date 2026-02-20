@@ -128,9 +128,9 @@ class FamilyMember {
       apellido: json['apellido'] ?? '',
       nombre: json['nombre'] ?? '',
       parentesco: json['parentesco'] ?? '',
-      sepelio: json['3010'] ?? '',
-      ambulancia: json['3210'] ?? '',
-      enfermeria: json['3310'] ?? '',
+      sepelio: json['sepelio'] ?? json['3010'] ?? '',
+      ambulancia: json['ambulancia'] ?? json['3210'] ?? '',
+      enfermeria: json['enfermeria'] ?? json['3310'] ?? '',
     );
   }
 }
