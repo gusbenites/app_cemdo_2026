@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
+
 class PaymentProcedureScreen extends StatelessWidget {
   const PaymentProcedureScreen({super.key});
 
@@ -40,6 +42,7 @@ class PaymentProcedureScreen extends StatelessWidget {
         title: const Text('Medios de Pago'),
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
+        actions: const [SupportIconButton()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),

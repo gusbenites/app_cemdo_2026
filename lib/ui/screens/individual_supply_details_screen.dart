@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
 import 'package:app_cemdo/data/models/supply_model.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:app_cemdo/logic/providers/service_provider.dart';
@@ -76,6 +77,7 @@ class _IndividualSupplyDetailsScreenState
         title: Text('Detalle Suministro #${widget.supply.idsuministro}'),
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
+        actions: const [SupportIconButton()],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

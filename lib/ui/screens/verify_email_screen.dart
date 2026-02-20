@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
 
+import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
+
 class VerifyEmailScreen extends StatelessWidget {
   const VerifyEmailScreen({super.key});
 
@@ -13,6 +15,7 @@ class VerifyEmailScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Verificar Correo Electrónico'),
         automaticallyImplyLeading: false, // Prevent back button
+        actions: const [SupportIconButton()],
       ),
       body: Center(
         child: Padding(

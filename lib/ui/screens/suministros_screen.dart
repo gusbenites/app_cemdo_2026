@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/service_provider.dart';
 import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
+import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
 
 import 'supply_details_screen.dart';
 import 'individual_supply_details_screen.dart';
@@ -82,6 +83,7 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
             );
           },
         ),
+        actions: const [SupportIconButton()],
       ),
       body: Consumer<ServiceProvider>(
         builder: (context, serviceProvider, child) {
