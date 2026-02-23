@@ -147,12 +147,13 @@ class EnabledServices {
   });
 
   factory EnabledServices.fromJson(Map<String, dynamic>? json) {
-    if (json == null)
+    if (json == null) {
       return EnabledServices(
         sepelio: false,
         ambulancia: false,
         enfermeria: false,
       );
+    }
     return EnabledServices(
       sepelio: json['sepelio'] == true,
       ambulancia: json['ambulancia'] == true,
