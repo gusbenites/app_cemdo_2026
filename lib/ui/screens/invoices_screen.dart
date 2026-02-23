@@ -119,80 +119,68 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                   .allInvoices // Show all invoices
             : invoiceProvider.unpaidInvoices; // Show only unpaid invoices
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.blue[900],
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20.0),
-                  bottomRight: Radius.circular(20.0),
+        return CustomScrollView(
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue[900],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20.0),
+                    bottomRight: Radius.circular(20.0),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 16.0),
+                  child: AccountCard(account: accountProvider.activeAccount!),
                 ),
               ),
+            ),
+            SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 16.0),
-                child: AccountCard(account: accountProvider.activeAccount!),
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                child: const Text(
+                  'Historial de Facturas',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Historial de Facturas',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: invoicesToShow.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    'No hay facturas para mostrar.',
-                                  ), // Generic message
-                                )
-                              : ListView.separated(
-                                  itemCount: invoicesToShow.length,
-                                  itemBuilder: (context, index) {
-                                    final invoice = invoicesToShow[index];
-                                    return InvoiceCard(
-                                      invoice: invoice,
-                                      onTap: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) => PdfViewScreen(
-                                              idcbte: invoice.idcbte.toString(),
-                                              nroFactura: invoice.nroFactura,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  separatorBuilder: (context, index) =>
-                                      const Divider(),
+            invoicesToShow.isEmpty
+                ? const SliverFillRemaining(
+                    child: Center(child: Text('No hay facturas para mostrar.')),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index.isOdd) {
+                          return const Divider();
+                        }
+                        final invoiceIndex = index ~/ 2;
+                        final invoice = invoicesToShow[invoiceIndex];
+                        return InvoiceCard(
+                          invoice: invoice,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => PdfViewScreen(
+                                  idcbte: invoice.idcbte.toString(),
+                                  nroFactura: invoice.nroFactura,
                                 ),
-                        ),
-                      ],
+                              ),
+                            );
+                          },
+                        );
+                      }, childCount: invoicesToShow.length * 2 - 1),
                     ),
                   ),
+            if (invoiceProvider.unpaidInvoices.isNotEmpty)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.0),
+                  child: PaymentActionCard(),
                 ),
               ),
-            ),
-            if (invoiceProvider.unpaidInvoices.isNotEmpty)
-              const PaymentActionCard(),
           ],
         );
       },
