@@ -10,7 +10,6 @@ import 'package:app_cemdo/logic/providers/account_provider.dart'; // Added
 import 'package:app_cemdo/logic/providers/auth_provider.dart'; // Added
 import 'package:app_cemdo/exceptions/email_not_verified_exception.dart';
 import 'package:app_cemdo/ui/utils/error_notification.dart';
-import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -134,11 +133,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Stack(
             children: [
-              const Positioned(
-                top: 8,
-                right: 8,
-                child: SupportIconButton(color: Colors.white),
-              ),
               Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
