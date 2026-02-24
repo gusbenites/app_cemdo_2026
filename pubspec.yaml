@@ -64,7 +64,15 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.4.6
+  flutter_launcher_icons: ^0.13.1
   mocktail: ^1.0.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_app_1152.png"
+  min_sdk_android: 21 # android min sdk min:16, default:21
+
 
 flutter_native_splash:
   # This package generates native code to customize Flutter's default white native splash screen
@@ -91,10 +99,12 @@ flutter_native_splash:
 
   # The image parameter allows you to specify an image used in the splash screen.  It must be a
   # png file and should be sized for 4x pixel density.
-  image: assets/images/logo_cemdo_1156.png
-  branding: assets/images/branding_text.png
-  branding_mode: bottom
-  branding_bottom_padding: 64
+  image: assets/images/logo_app_1152.png
+  # branding: assets/images/logo_cemdo.png
+  # branding_mode: bottom
+  # branding_bottom_padding: 64
+
+
 
   # The branding property allows you to specify an image used as branding in the splash screen.
   # It must be a png file. It is supported for Android, iOS and the Web.  For Android 12,
@@ -132,7 +142,7 @@ flutter_native_splash:
     # 768 pixels in diameter.  To fit a 1152x1152 image within a circle with a 768 diameter, simply 
     # ensure that the most important design elements of your image are placed within a circular area
     # with a 768 diameter at the center of the 1152x1152 canvas.
-    image: assets/images/logo_cemdo_1156.png
+    image: assets/images/logo_app_1152.png
 
     # Splash screen background color.
     color: "#1976D2"
@@ -141,7 +151,9 @@ flutter_native_splash:
     # App icon background color.
     #icon_background_color: "#111111"
 
-    branding: assets/images/branding_text.png
+    # branding: assets/images/logo_cemdo.png
+
+
 
     # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
     # apply when the device is in dark mode. If they are not specified, the app will use the
@@ -164,7 +176,8 @@ flutter_native_splash:
     #color_dark_ios: "#1976D2"
     #color_web: "#1976D2"
     #color_dark_web: "#042a49"
-    image_android: assets/images/logo_cemdo_1156.png
+    image_android: assets/images/logo_app_1152.png
+
     #image_dark_android: assets/splash-invert-android.png
     #image_ios: assets/splash-ios.png
     #image_dark_ios: assets/splash-invert-ios.png
@@ -240,7 +253,7 @@ flutter:
   - .env.development
   - .env.production
   - assets/images/
-  - assets/images/branding_text.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
