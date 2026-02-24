@@ -12,6 +12,7 @@ import 'package:app_cemdo/ui/screens/verify_email_screen.dart';
 import 'package:app_cemdo/ui/screens/main_screen.dart';
 import 'package:app_cemdo/ui/screens/auth_check_screen.dart';
 import 'package:app_cemdo/ui/screens/notification_permission_screen.dart';
+import 'package:app_cemdo/ui/screens/welcome_screen.dart';
 
 import 'package:app_cemdo/ui/utils/error_notification.dart';
 
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
           '/': (context) => const AuthCheck(),
           '/main': (context) => const MainScreen(),
           '/login': (context) => const LoginScreen(),
+          '/welcome': (context) => const WelcomeScreen(),
           '/accounts': (context) => const AccountsScreen(),
           '/verify_email': (context) => const VerifyEmailScreen(),
           '/notification_permission': (context) =>

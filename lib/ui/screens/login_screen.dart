@@ -133,6 +133,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Stack(
             children: [
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
               Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
@@ -165,18 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                           ),
                           const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           Text(
-                            'Bienvenido',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Inicia sesión para continuar',
+                            'Ingresa tu email y contraseña',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(color: Colors.grey[600]),
@@ -324,51 +323,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Divider(color: Colors.grey),
-                              ), // Changed color
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                ),
-                                child: const Text(
-                                  'O',
-                                  style: TextStyle(color: Colors.grey),
-                                ), // Changed color
-                              ),
-                              const Expanded(
-                                child: Divider(color: Colors.grey),
-                              ), // Changed color
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Placeholder for Google sign-in logic
-                            },
-                            icon: Image.asset(
-                              'assets/images/google.png',
-                              height: 22,
-                            ),
-                            label: const Text(
-                              'Continuar con Google',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 50),
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black87,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
                           ),
                           const SizedBox(height: 16),
                           // Copyright and Version Info

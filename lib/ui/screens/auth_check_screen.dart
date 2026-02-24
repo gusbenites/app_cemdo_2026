@@ -73,7 +73,7 @@ class AuthCheckState extends State<AuthCheck> {
         );
       }
     } else {
-      nextRoute = '/login';
+      nextRoute = '/welcome';
     }
 
     if (!mounted) return;
