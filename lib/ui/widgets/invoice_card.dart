@@ -10,12 +10,16 @@ class InvoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color colorEstado;
+    final String statusText;
     if (invoice.isVencida) {
       colorEstado = Colors.red;
+      statusText = 'VENCIDA';
     } else if (invoice.estado == 'Pagado') {
       colorEstado = Colors.green;
+      statusText = 'PAGADA';
     } else {
       colorEstado = Colors.orange;
+      statusText = 'PENDIENTE';
     }
 
     return InkWell(
@@ -82,13 +86,26 @@ class InvoiceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '\$${invoice.srvImporte}',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: colorEstado,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      statusText,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: colorEstado,
+                      ),
+                    ),
+                    Text(
+                      '\$${invoice.srvImporte}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: colorEstado,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

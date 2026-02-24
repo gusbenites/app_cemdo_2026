@@ -1,5 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'dart:io';
+import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'package:app_cemdo/data/services/api_service.dart';
 import 'package:app_cemdo/ui/utils/error_notification.dart';
 
 class ErrorService {
@@ -16,21 +20,17 @@ class ErrorService {
       options.dsn = dsn;
       options.environment = environment;
       options.tracesSampleRate = 1.0;
-      // Don't report errors in debug mode to Sentry if you prefer
-      // options.beforeSend = (event, {hint}) => kDebugMode ? null : event;
     });
     _isInitialized = true;
     log('ErrorService initialized in $environment mode');
   }
 
   void reportError(Object error, [StackTrace? stackTrace, String? hint]) {
-    // 1. Log to console
     log('Error reported: $error');
     if (stackTrace != null) {
       debugPrint(stackTrace.toString());
     }
 
-    // 2. Report to Sentry
     if (_isInitialized) {
       Sentry.captureException(
         error,
@@ -43,9 +43,6 @@ class ErrorService {
       );
     }
 
-    // 3. Notify user (optional, depends on error type or context)
-    // For now, we show a generic snackbar for all reported errors
-    // unless we decide otherwise based on the error type.
     _notifyUser(error);
   }
 
@@ -55,14 +52,28 @@ class ErrorService {
 
   void _notifyUser(Object error) {
     String message = 'Ha ocurrido un error inesperado.';
+    String code = '[F]';
 
-    if (error is Exception) {
-      // Custom handling for specific exceptions can be added here
+    if (error is SocketException || error is http.ClientException) {
+      message = 'Problema de conexión con el servidor. Verifica tu internet.';
+      code = '[C]';
+    } else if (error is TimeoutException) {
+      message = 'El servidor tardó demasiado en responder. Inténtalo de nuevo.';
+      code = '[C]';
+    } else if (error is ApiException) {
+      if (error.statusCode >= 500) {
+        message = 'El servidor está experimentando problemas técnicos.';
+        code = '[B]';
+      } else {
+        message = error.message;
+        code = '[B]';
+      }
+    } else if (error is Exception) {
       message = error.toString().replaceAll('Exception: ', '');
     } else if (error is String) {
       message = error;
     }
 
-    ErrorNotification.showSnackBar(message);
+    ErrorNotification.showSnackBar('$message $code');
   }
 }

@@ -60,12 +60,29 @@ class VersionService {
   }
 
   int _compareVersions(String v1, String v2) {
-    List<int> v1Parts = v1.split('.').map(int.parse).toList();
-    List<int> v2Parts = v2.split('.').map(int.parse).toList();
+    // Basic cleanup: remove everything from '-' onwards (suffixes like -dev, -alpha)
+    String cleanV1 = v1.split('-').first;
+    String cleanV2 = v2.split('-').first;
 
-    for (int i = 0; i < v1Parts.length && i < v2Parts.length; i++) {
-      if (v1Parts[i] > v2Parts[i]) return 1;
-      if (v1Parts[i] < v2Parts[i]) return -1;
+    List<int> v1Parts = cleanV1
+        .split('.')
+        .map((e) => int.tryParse(e) ?? 0)
+        .toList();
+    List<int> v2Parts = cleanV2
+        .split('.')
+        .map((e) => int.tryParse(e) ?? 0)
+        .toList();
+
+    int length = v1Parts.length > v2Parts.length
+        ? v1Parts.length
+        : v2Parts.length;
+
+    for (int i = 0; i < length; i++) {
+      int p1 = i < v1Parts.length ? v1Parts[i] : 0;
+      int p2 = i < v2Parts.length ? v2Parts[i] : 0;
+
+      if (p1 > p2) return 1;
+      if (p1 < p2) return -1;
     }
     return 0;
   }
