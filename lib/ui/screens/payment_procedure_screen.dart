@@ -39,7 +39,17 @@ class PaymentProcedureScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Medios de Pago'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo_cemdo.png',
+              height: 32,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 12),
+            const Text('Portal CEMDO'),
+          ],
+        ),
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
         actions: const [SupportIconButton()],
@@ -54,7 +64,7 @@ class PaymentProcedureScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
-                  'Usted puede abonar las facturas que no esten vencidas en su ultimo vencimiento por las plataformas bancarizadas que operan con la cooperativa. Las facturas vencidas que ya no figuren en las plataformas bancarizadas deberan ser abonadas en la cooperativa y sus delegaciones.',
+                  'Puede abonar sus facturas vigentes a través de las plataformas bancarizadas. Las facturas vencidas posterior al ultimo vencimiento, deben abonarse en la cooperativa o sus delegaciones.',
                   style: TextStyle(fontSize: 16, height: 1.5),
                   textAlign: TextAlign.justify,
                 ),
@@ -79,7 +89,7 @@ class PaymentProcedureScreen extends StatelessWidget {
               assetPath: 'assets/images/bancor-pagos.png',
               onPressed: () =>
                   _launchUrl(context, dotenv.env['PAYMENT_BANCOR_URL']),
-              backgroundColor: Colors.white,
+              backgroundColor: const Color(0xFF1B5E20),
             ),
             const SizedBox(height: 24),
             Container(

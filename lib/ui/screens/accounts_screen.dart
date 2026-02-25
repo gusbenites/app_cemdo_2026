@@ -211,149 +211,164 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50], // Lighter background
-      body: Consumer<AccountProvider>(
-        builder: (context, accountProvider, child) {
-          return Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.stretch, // Stretch button
+    return Consumer<AccountProvider>(
+      builder: (context, accountProvider, child) {
+        return CustomScrollView(
+          slivers: [
+            // Blue Header
+            SliverToBoxAdapter(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.blue[900],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20.0),
+                    bottomRight: Radius.circular(20.0),
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 24.0),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Cuentas Vinculadas',
                       style: TextStyle(
-                        fontSize: 24,
+                        color: Colors.white,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        clipBehavior: Clip.antiAlias, // Clip the list inside
-                        child: accountProvider.accounts.isEmpty
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.account_balance_wallet_outlined,
-                                        size: 80,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No tienes cuentas vinculadas.',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.grey[600],
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Vincula una cuenta para empezar.',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[500],
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : ListView.separated(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0,
-                                ), // Padding for the list
-                                itemCount: accountProvider.accounts.length,
-                                itemBuilder: (context, index) {
-                                  final account =
-                                      accountProvider.accounts[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                    ),
-                                    child: AccountListItem(
-                                      account: account,
-                                      isActive:
-                                          account.idcliente ==
-                                          accountProvider
-                                              .activeAccount
-                                              ?.idcliente,
-                                      onTap: _isChangingAccount
-                                          ? null
-                                          : () {
-                                              _handleAccountTap(
-                                                account,
-                                                accountProvider,
-                                              );
-                                            },
-                                      onDelete: () =>
-                                          _showUnlinkConfirmationDialog(
-                                            context,
-                                            account,
-                                            accountProvider,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                separatorBuilder: (context, index) =>
-                                    const Divider(indent: 16, endIndent: 16),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: _isChangingAccount
-                          ? null
-                          : () async {
-                              final success = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => const LinkAccountDialog(),
-                              );
-                              if (success == true && mounted) {
-                                Navigator.of(
-                                  context,
-                                ).pushReplacementNamed('/main');
-                              }
-                            },
-                      icon: const Icon(Icons.add_circle_outline),
-                      label: const Text('Vincular Nueva Cuenta'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Gestione sus cuentas para acceder a los servicios.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (_isChangingAccount)
-                Container(
-                  color: Colors.black.withOpacity(0.5),
-                  child: const Center(child: CircularProgressIndicator()),
+            ),
+
+            // Accounts List or Empty State
+            SliverPadding(
+              padding: const EdgeInsets.all(16.0),
+              sliver: SliverToBoxAdapter(
+                child: accountProvider.accounts.isEmpty
+                    ? Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.account_balance_wallet_outlined,
+                                size: 80,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No tienes cuentas vinculadas.',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          itemCount: accountProvider.accounts.length,
+                          itemBuilder: (context, index) {
+                            final account = accountProvider.accounts[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
+                              child: AccountListItem(
+                                account: account,
+                                isActive:
+                                    account.idcliente ==
+                                    accountProvider.activeAccount?.idcliente,
+                                onTap: _isChangingAccount
+                                    ? null
+                                    : () => _handleAccountTap(
+                                        account,
+                                        accountProvider,
+                                      ),
+                                onDelete: () => _showUnlinkConfirmationDialog(
+                                  context,
+                                  account,
+                                  accountProvider,
+                                ),
+                              ),
+                            );
+                          },
+                          separatorBuilder: (context, index) =>
+                              const Divider(indent: 16, endIndent: 16),
+                        ),
+                      ),
+              ),
+            ),
+
+            // Link New Account Button
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
+              sliver: SliverToBoxAdapter(
+                child: FilledButton.icon(
+                  onPressed: _isChangingAccount
+                      ? null
+                      : () async {
+                          final success = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => const LinkAccountDialog(),
+                          );
+                          if (success == true && mounted) {
+                            Navigator.of(context).pushReplacementNamed('/main');
+                          }
+                        },
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text('Vincular Nueva Cuenta'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
                 ),
-            ],
-          );
-        },
-      ),
+              ),
+            ),
+
+            // Loading Indicator Overlay
+            if (_isChangingAccount)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        );
+      },
     );
   }
 }

@@ -116,12 +116,14 @@ class _LinkAccountDialogState extends State<LinkAccountDialog> {
                   children: [
                     Icon(Icons.add_link, color: Colors.white, size: 28),
                     SizedBox(width: 12),
-                    Text(
-                      'Vincular Nueva Cuenta',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        'Vincular Cuenta',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],

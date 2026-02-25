@@ -15,6 +15,7 @@ import 'package:app_cemdo/ui/screens/notification_permission_screen.dart';
 import 'package:app_cemdo/ui/screens/welcome_screen.dart';
 
 import 'package:app_cemdo/ui/utils/error_notification.dart';
+import 'package:app_cemdo/ui/utils/global_navigator_key.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Portal CEMDO',
+        navigatorKey: GlobalNavigatorKey.navigatorKey,
         scaffoldMessengerKey: ErrorNotification.messengerKey,
         theme: ThemeData(primarySwatch: Colors.blue),
         debugShowCheckedModeBanner: false,

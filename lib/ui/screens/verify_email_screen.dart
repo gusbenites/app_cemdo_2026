@@ -68,7 +68,7 @@ class VerifyEmailScreen extends StatelessWidget {
                   await authProvider.logout();
                   Navigator.of(
                     context,
-                  ).pushNamedAndRemoveUntil('/login', (route) => false);
+                  ).pushNamedAndRemoveUntil('/welcome', (route) => false);
                 },
                 child: const Text('Volver a Iniciar Sesión'),
               ),

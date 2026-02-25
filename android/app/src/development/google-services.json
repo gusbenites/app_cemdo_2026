@@ -14,11 +14,35 @@
       },
       "oauth_client": [
         {
+          "client_id": "2929978084-gjl2vngdi3qn4jef4k6up3ofvn38hqdd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cemdo.portal",
+            "certificate_hash": "17bd8069459d5e29d31b033d43f7603016de5455"
+          }
+        },
+        {
           "client_id": "2929978084-lrhsjp0j0c27aiff6v41vc2v5b1e4emv.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.cemdo.portal",
             "certificate_hash": "8ceb0a129f1e1ec4f1c02b63714edff809324243"
+          }
+        },
+        {
+          "client_id": "2929978084-q2cqv7gr8h6rq5r9tu12ac6s630ugk7c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cemdo.portal",
+            "certificate_hash": "a1572b2bbccedb2fd6557e32839c60188d0d041d"
+          }
+        },
+        {
+          "client_id": "2929978084-qkr7cc9v9t03fd8sq44i89c2km4tuab9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cemdo.portal",
+            "certificate_hash": "fb98bc240064b85dfbbd98bf7a501d8036fc94b4"
           }
         },
         {
@@ -35,7 +59,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "2929978084-pie1410ma5bbg7gchi68pb2iva5fsrhc.apps.googleusercontent.com",
+              "client_id": "2929978084-j0jnmfdofolnuq5lfsbnqcln8b731ohe.apps.googleusercontent.com",
               "client_type": 3
             },
             {
@@ -66,6 +90,14 @@
           }
         },
         {
+          "client_id": "2929978084-po56larp6bk1krmofi37t9rpkbjc7k9d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cemdo.portal.dev",
+            "certificate_hash": "a1572b2bbccedb2fd6557e32839c60188d0d041d"
+          }
+        },
+        {
           "client_id": "2929978084-pie1410ma5bbg7gchi68pb2iva5fsrhc.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -79,7 +111,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "2929978084-pie1410ma5bbg7gchi68pb2iva5fsrhc.apps.googleusercontent.com",
+              "client_id": "2929978084-j0jnmfdofolnuq5lfsbnqcln8b731ohe.apps.googleusercontent.com",
               "client_type": 3
             },
             {

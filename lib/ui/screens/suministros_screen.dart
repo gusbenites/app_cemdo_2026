@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/service_provider.dart';
 import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
-import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
 
 import 'supply_details_screen.dart';
 import 'individual_supply_details_screen.dart';
@@ -58,177 +57,199 @@ class _SuministrosScreenState extends State<SuministrosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Consumer<AccountProvider>(
-          builder: (context, accountProvider, child) {
-            final activeAccount = accountProvider.activeAccount;
-            if (activeAccount == null) return const Text('Suministros');
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Suministros de ${activeAccount.razonSocial}',
-                    overflow: TextOverflow.ellipsis,
+    return Consumer2<AccountProvider, ServiceProvider>(
+      builder: (context, accountProvider, serviceProvider, child) {
+        final activeAccount = accountProvider.activeAccount;
+
+        if (activeAccount == null) {
+          return const Center(
+            child: Text('No hay una cuenta activa seleccionada.'),
+          );
+        }
+
+        if (serviceProvider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return CustomScrollView(
+          slivers: [
+            // Blue Header
+            SliverToBoxAdapter(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.blue[900],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20.0),
+                    bottomRight: Radius.circular(20.0),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '(${activeAccount.idcliente})',
-                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Suministros Contratados',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Cuenta: ${activeAccount.razonSocial} (${activeAccount.idcliente})',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            );
-          },
-        ),
-        actions: const [SupportIconButton()],
-      ),
-      body: Consumer<ServiceProvider>(
-        builder: (context, serviceProvider, child) {
-          final accountProvider = Provider.of<AccountProvider>(context);
-
-          if (accountProvider.activeAccount == null) {
-            return const Center(
-              child: Text('No hay una cuenta activa seleccionada.'),
-            );
-          }
-
-          if (serviceProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (serviceProvider.services.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.info_outline, size: 60, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No se encontraron servicios contratados.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _fetchServices,
-                    child: const Text('Reintentar'),
-                  ),
-                ],
               ),
-            );
-          }
+            ),
 
-          return ListView.builder(
-            itemCount: serviceProvider.services.length,
-            padding: const EdgeInsets.all(16.0),
-            itemBuilder: (context, index) {
-              final service = serviceProvider.services[index];
-              return Card(
-                elevation: 3,
-                margin: const EdgeInsets.only(bottom: 16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+            if (serviceProvider.services.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 60,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No se encontraron servicios contratados.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchServices,
+                        child: const Text('Reintentar'),
+                      ),
+                    ],
+                  ),
                 ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(15),
-                  onTap: () {
-                    if (service.supplies.length == 1) {
-                      final supply = service.supplies.first;
-                      if (service.id == 1 ||
-                          service.id == 2 ||
-                          service.id == 3 ||
-                          service.id == 99) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => IndividualSupplyDetailsScreen(
-                              supply: supply,
-                              tag: service.tag,
-                              serviceId: service.id,
-                            ),
-                          ),
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GenericSupplyDetailsScreen(
-                              supply: supply,
-                              tag: service.tag,
-                            ),
-                          ),
-                        );
-                      }
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              SupplyDetailsScreen(service: service),
-                        ),
-                      );
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: ServiceUtils.getServiceColor(
-                            service.tag,
-                            service.label,
-                          ),
-                          radius: 25,
-                          child: Icon(
-                            ServiceUtils.getServiceIcon(
-                              service.tag,
-                              service.label,
-                            ),
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Suministro de ${service.label}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(16.0),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final service = serviceProvider.services[index];
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(15),
+                        onTap: () {
+                          if (service.supplies.length == 1) {
+                            final supply = service.supplies.first;
+                            if (service.id == 1 ||
+                                service.id == 2 ||
+                                service.id == 3 ||
+                                service.id == 99) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      IndividualSupplyDetailsScreen(
+                                        supply: supply,
+                                        tag: service.tag,
+                                        serviceId: service.id,
+                                      ),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      GenericSupplyDetailsScreen(
+                                        supply: supply,
+                                        tag: service.tag,
+                                      ),
+                                ),
+                              );
+                            }
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    SupplyDetailsScreen(service: service),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${service.supplies.length} suministro(s)',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
+                            );
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: ServiceUtils.getServiceColor(
+                                  service.tag,
+                                  service.label,
                                 ),
+                                radius: 25,
+                                child: Icon(
+                                  ServiceUtils.getServiceIcon(
+                                    service.tag,
+                                    service.label,
+                                  ),
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Suministro de ${service.label}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${service.supplies.length} suministro(s)',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey[400],
                               ),
                             ],
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey[400],
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  }, childCount: serviceProvider.services.length),
                 ),
-              );
-            },
-          );
-        },
-      ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

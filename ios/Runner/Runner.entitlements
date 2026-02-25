@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>aps-environment</key>
-	<string>development</string>
-	<key>com.apple.security.application-groups</key>
+	<string>$(APS_ENVIRONMENT)</string>
+	<key>com.apple.developer.applesignin</key>
 	<array>
-		<string>group.Cemdo</string>
+		<string>Default</string>
 	</array>
 </dict>
 </plist>

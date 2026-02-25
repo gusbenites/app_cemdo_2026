@@ -1,5 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
+import 'package:app_cemdo/logic/providers/auth_provider.dart';
+import 'package:app_cemdo/ui/utils/error_notification.dart';
+import 'package:app_cemdo/logic/providers/account_provider.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -10,6 +15,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   PackageInfo? _packageInfo;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -116,37 +122,133 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       const SizedBox(height: 16),
 
                       // Google Button
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          // Placeholder for Google Auth
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Inicio de sesión con Google próximamente',
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : OutlinedButton.icon(
+                              onPressed: () async {
+                                setState(() => _isLoading = true);
+                                try {
+                                  final authProvider =
+                                      Provider.of<AuthProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  await authProvider.signInWithGoogle();
+
+                                  if (!mounted) return;
+
+                                  final accountProvider =
+                                      Provider.of<AccountProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  await accountProvider.fetchAccounts(
+                                    authProvider.token!,
+                                  );
+
+                                  if (!mounted) return;
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/main',
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: ${e.toString()}'),
+                                    ),
+                                  );
+                                } finally {
+                                  if (mounted) {
+                                    setState(() => _isLoading = false);
+                                  }
+                                }
+                              },
+                              icon: Image.asset(
+                                'assets/images/google.png',
+                                height: 24,
+                              ),
+                              label: const Text(
+                                'Google',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 56),
+                                side: BorderSide(color: Colors.grey[300]!),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
-                          );
-                        },
-                        icon: Image.asset(
-                          'assets/images/google.png',
-                          height: 24,
-                        ),
-                        label: const Text(
-                          'Google',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 56),
-                          side: BorderSide(color: Colors.grey[300]!),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
+
+                      if (Platform.isIOS) ...[
+                        const SizedBox(height: 16),
+                        _isLoading
+                            ? const SizedBox.shrink()
+                            : OutlinedButton.icon(
+                                onPressed: () async {
+                                  setState(() => _isLoading = true);
+                                  try {
+                                    final authProvider =
+                                        Provider.of<AuthProvider>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    await authProvider.signInWithApple();
+
+                                    if (!mounted) return;
+
+                                    final accountProvider =
+                                        Provider.of<AccountProvider>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    await accountProvider.fetchAccounts(
+                                      authProvider.token!,
+                                    );
+
+                                    if (!mounted) return;
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      '/main',
+                                    );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ErrorNotification.showSnackBar(
+                                      'Error al iniciar sesión con Apple. Inténtelo de nuevo.',
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _isLoading = false);
+                                    }
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.apple,
+                                  size: 28,
+                                  color: Colors.black,
+                                ),
+                                label: const Text(
+                                  'Continuar con Apple',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 56),
+                                  side: BorderSide(color: Colors.grey[300]!),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                      ],
 
                       const SizedBox(height: 40),
 

@@ -14,6 +14,7 @@ import 'package:app_cemdo/data/services/version_service.dart'; // Added
 import 'package:app_cemdo/ui/widgets/version_check_dialog.dart'; // Added
 import 'package:app_cemdo/ui/screens/suministros_screen.dart'; // Added
 import 'package:app_cemdo/ui/widgets/support_icon_button.dart';
+import 'package:app_cemdo/ui/screens/welcome_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -152,7 +153,9 @@ class MainScreenState extends State<MainScreen> {
                 await authProvider.logout();
                 if (!mounted) return;
                 navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const WelcomeScreen(),
+                  ),
                   (Route<dynamic> route) => false,
                 );
               }

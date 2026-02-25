@@ -12,6 +12,9 @@ import 'package:url_launcher/url_launcher.dart'; // Added for opening app settin
 import 'package:device_info_plus/device_info_plus.dart'; // Added for device info
 import 'package:package_info_plus/package_info_plus.dart'; // Added for app version
 import 'dart:io'; // Added for Platform
+import 'package:provider/provider.dart';
+import 'package:app_cemdo/logic/providers/auth_provider.dart';
+import 'package:app_cemdo/ui/utils/global_navigator_key.dart';
 
 class NotificationService extends ChangeNotifier {
   static final NotificationService _instance = NotificationService._internal();
@@ -74,9 +77,7 @@ class NotificationService extends ChangeNotifier {
   Future<void> initialize() async {
     final messaging = _firebaseMessaging;
     if (messaging == null) {
-      debugPrint(
-        'NotificationService: Firebase not initialized, skipping initialization.',
-      );
+      debugPrint('NotificationService: Firebase messaging not available.');
       return;
     }
 
@@ -92,27 +93,45 @@ class NotificationService extends ChangeNotifier {
         sound: true,
       );
 
+      debugPrint(
+        'Notification Authorization Status: ${settings.authorizationStatus}',
+      );
       _updatePermissionStatus(settings.authorizationStatus);
 
       // Get the FCM token
       try {
         String? token = await messaging.getToken();
-        debugPrint('******** FCM Token: $token');
+        debugPrint('******** FCM Token (at Init): $token');
       } catch (e) {
-        debugPrint('Error getting FCM token: $e');
+        debugPrint('Error getting FCM token at initialization: $e');
       }
     } catch (e) {
       debugPrint('Error during notification permission request: $e');
     }
 
+    // Listen to token refresh
+    messaging.onTokenRefresh.listen((newToken) {
+      debugPrint('******** FCM Token Refresh: $newToken');
+      // If user is already logged in, update backend
+      final authProvider = Provider.of<AuthProvider>(
+        GlobalNavigatorKey.navigatorKey.currentContext!,
+        listen: false,
+      );
+      if (authProvider.user != null) {
+        sendFcmTokenToBackend(authProvider.user!.id.toString());
+      }
+    });
+
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Got a message whilst in the foreground!');
+      debugPrint(
+        '******** Foreground Notification Received: ${message.messageId}',
+      );
       debugPrint('Message data: ${message.data}');
 
       if (message.notification != null) {
         debugPrint(
-          'Message also contained a notification: ${message.notification!.title} - ${message.notification!.body}',
+          'Notification content: ${message.notification!.title} - ${message.notification!.body}',
         );
         saveNotification(
           message.notification!.title ?? 'No Title',
@@ -125,7 +144,7 @@ class NotificationService extends ChangeNotifier {
 
     // Handle messages when the app is in the background or terminated
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('A new onMessageOpenedApp event was published!');
+      debugPrint('******** Notification Opened App: ${message.messageId}');
       debugPrint('Message data: ${message.data}');
       if (message.notification != null) {
         saveNotification(
@@ -135,8 +154,8 @@ class NotificationService extends ChangeNotifier {
           message.data['timestamp'] ?? DateTime.now().toIso8601String(),
         );
       }
-      // You can navigate to a specific screen here based on the message data
     });
+
     _updateUnreadCount(); // Initial load of unread count
     await checkPermissionStatus(); // Ensure initial status is set
     notifyListeners(); // Notify listeners about the initial state
@@ -215,7 +234,7 @@ class NotificationService extends ChangeNotifier {
     final messaging = _firebaseMessaging;
     if (messaging == null) {
       debugPrint(
-        'NotificationService: Skipping token update, Firebase not initialized.',
+        'NotificationService: Skipping token update, messaging unavailable.',
       );
       return;
     }
@@ -223,8 +242,14 @@ class NotificationService extends ChangeNotifier {
     String? fcmToken;
     try {
       fcmToken = await messaging.getToken();
+      debugPrint('******** Sending FCM Token to backend: $fcmToken');
     } catch (e) {
-      debugPrint('Error getting FCM token for backend: $e');
+      debugPrint('Error getting FCM token for backend submission: $e');
+      return;
+    }
+
+    if (fcmToken == null) {
+      debugPrint('FCM Token is null, cannot update backend.');
       return;
     }
 
@@ -238,9 +263,9 @@ class NotificationService extends ChangeNotifier {
     final String backendUrl = '$backendUrlEnv/fcm-token';
     final secureStorageService = SecureStorageService();
     final authToken = await secureStorageService.getToken();
-    final deviceInfo = await _getDeviceInfo(); // Get device info map
+    final deviceInfo = await _getDeviceInfo();
     final deviceName = deviceInfo['name'];
-    final deviceId = deviceInfo['id']; // Get device ID
+    final deviceId = deviceInfo['id'];
 
     if (authToken == null) {
       debugPrint('Auth token is null, cannot send FCM token to backend.');
@@ -251,6 +276,7 @@ class NotificationService extends ChangeNotifier {
     final appVersion = packageInfo.version;
 
     try {
+      debugPrint('Posting FCM token to: $backendUrl');
       final response = await http.post(
         Uri.parse(backendUrl),
         headers: {
@@ -260,21 +286,21 @@ class NotificationService extends ChangeNotifier {
         body: {
           'fcm_token': fcmToken,
           'device_name': deviceName ?? 'Unknown Device',
-          'device_id': deviceId ?? 'Unknown ID', // Include device ID
+          'device_id': deviceId ?? 'Unknown ID',
           'app_version': appVersion,
         },
       );
 
       if (response.statusCode == 200) {
-        debugPrint('FCM Token sent to backend successfully.');
+        debugPrint('******** FCM Token sent correctly to backend.');
       } else {
         debugPrint(
-          'Failed to send FCM Token to backend. Status code: ${response.statusCode}',
+          '******** FAILED to send FCM Token to backend. Status: ${response.statusCode}',
         );
-        debugPrint('Response body: ${response.body}');
+        debugPrint('Response Body: ${response.body}');
       }
     } catch (e) {
-      debugPrint('Error sending FCM Token to backend: $e');
+      debugPrint('Error during HTTP post of FCM token: $e');
     }
   }
 

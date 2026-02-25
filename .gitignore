@@ -43,15 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-/android/app/google-services.json
+
 
 # Environment files (keep .env.example as template)
-.env
-.env.development
-.env.production
 
 # Firebase and Google Services config (sensitive)
-**/google-services.json
-**/GoogleService-Info.plist
-**/firebase_options.dart
-**/firebase_app_id_file.json

@@ -4,22 +4,30 @@ class ErrorNotification {
   static final GlobalKey<ScaffoldMessengerState> messengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
-  static void showSnackBar(String message, {bool isError = true}) {
+  static void showSnackBar(
+    String message, {
+    bool isError = true,
+    VoidCallback? onRetry,
+  }) {
     messengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red.shade800 : Colors.green.shade800,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(
-          seconds: 4,
-        ), // Closes automatically after 4 seconds
-        action: SnackBarAction(
-          label: 'Cerrar',
-          textColor: Colors.white,
-          onPressed: () {
-            messengerKey.currentState?.hideCurrentSnackBar();
-          },
-        ),
+        duration: const Duration(seconds: 4),
+        action: onRetry != null
+            ? SnackBarAction(
+                label: 'Reintentar',
+                textColor: Colors.white,
+                onPressed: onRetry,
+              )
+            : SnackBarAction(
+                label: 'Cerrar',
+                textColor: Colors.white,
+                onPressed: () {
+                  messengerKey.currentState?.hideCurrentSnackBar();
+                },
+              ),
       ),
     );
   }
