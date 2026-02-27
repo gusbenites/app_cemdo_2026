@@ -95,7 +95,7 @@ class AuthProvider with ChangeNotifier {
       // Enviar el token al backend (usamos accessToken o idToken según prefiera Socialite)
       final responseData = await _apiService.post(
         dotenv.env['GOOGLE_AUTH_CALLBACK_ENDPOINT'] ?? 'auth/google/callback',
-        body: {'token': idToken ?? accessToken, 'device_name': 'mobile'},
+        body: {'token': accessToken ?? idToken, 'device_name': 'mobile'},
       );
 
       debugPrint('AuthProvider.signInWithGoogle raw response: $responseData');
@@ -185,7 +185,9 @@ class AuthProvider with ChangeNotifier {
         scope: 'openid email profile offline_access User.Read',
         redirectUri: dotenv.env['MICROSOFT_REDIRECT']!,
         navigatorKey: GlobalNavigatorKey.navigatorKey,
-        clientSecret: dotenv.env['MICROSOFT_CLIENT_SECRET'],
+        clientSecret:
+            null, // For public client (native apps), secret should not be used
+        responseType: 'code',
       );
 
       final AadOAuth oauth = AadOAuth(config);
