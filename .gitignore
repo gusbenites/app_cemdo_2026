@@ -46,5 +46,4 @@ app.*.map.json
 
 
 # Environment files (keep .env.example as template)
-
-# Firebase and Google Services config (sensitive)
+.env*
