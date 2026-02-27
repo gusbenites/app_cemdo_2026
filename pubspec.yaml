@@ -73,7 +73,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo_app_1152.png"
+  image_path: "assets/images/logo_512_blanco.png"
   min_sdk_android: 21 # android min sdk min:16, default:21
 
 
@@ -145,7 +145,7 @@ flutter_native_splash:
     # 768 pixels in diameter.  To fit a 1152x1152 image within a circle with a 768 diameter, simply 
     # ensure that the most important design elements of your image are placed within a circular area
     # with a 768 diameter at the center of the 1152x1152 canvas.
-    image: assets/images/logo_app_1152.png
+    image: assets/images/logo_512_blanco.png
 
     # Splash screen background color.
     color: "#1565C0"
@@ -179,7 +179,7 @@ flutter_native_splash:
     #color_dark_ios: "#1976D2"
     #color_web: "#1976D2"
     #color_dark_web: "#042a49"
-    image_android: assets/images/logo_app_1152.png
+    image_android: assets/images/logo_512_blanco.png
 
     #image_dark_android: assets/splash-invert-android.png
     #image_ios: assets/splash-ios.png

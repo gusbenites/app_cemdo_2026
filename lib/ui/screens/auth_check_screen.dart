@@ -95,7 +95,7 @@ class AuthCheckState extends State<AuthCheck> {
                 children: [
                   ClipOval(
                     child: Image.asset(
-                      'assets/images/logo_app_1152.png', // Corrected path
+                      'assets/images/logo_512_blanco.png', // Updated path
                       height: 180, // Increased from 120 to 180 (50% larger)
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
