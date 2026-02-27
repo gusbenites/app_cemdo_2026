@@ -72,6 +72,7 @@
 					<string>msauth.com.cemdo.portal</string>
 				</array>
 			</dict>
-		</array>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Esta aplicación necesita acceder a su ubicación para mostrar su posición en el mapa respecto a los suministros y oficinas de CEMDO.</string>
 	</dict>
 </plist>
