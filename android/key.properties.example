@@ -1,0 +1,4 @@
+storePassword=<CONTRASEÑA_DEL_KEYSTORE>
+keyPassword=<CONTRASEÑA_DE_LA_LLAVE>
+keyAlias=upload
+storeFile=../app.keystore
