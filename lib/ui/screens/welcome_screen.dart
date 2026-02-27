@@ -169,7 +169,73 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 height: 24,
                               ),
                               label: const Text(
-                                'Google',
+                                'Google y Gmail',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 56),
+                                side: BorderSide(color: Colors.grey[300]!),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+
+                      const SizedBox(height: 16),
+
+                      // Microsoft Button
+                      _isLoading
+                          ? const SizedBox.shrink()
+                          : OutlinedButton.icon(
+                              onPressed: () async {
+                                setState(() => _isLoading = true);
+                                try {
+                                  final authProvider =
+                                      Provider.of<AuthProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  await authProvider.signInWithMicrosoft();
+
+                                  if (!mounted) return;
+
+                                  final accountProvider =
+                                      Provider.of<AccountProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  await accountProvider.fetchAccounts(
+                                    authProvider.token!,
+                                  );
+
+                                  if (!mounted) return;
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/main',
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: ${e.toString()}'),
+                                    ),
+                                  );
+                                } finally {
+                                  if (mounted) {
+                                    setState(() => _isLoading = false);
+                                  }
+                                }
+                              },
+                              icon: Image.asset(
+                                'assets/images/microsoft.png',
+                                height: 20,
+                              ),
+                              label: const Text(
+                                'Hotmail y Outlook',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

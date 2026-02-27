@@ -55,6 +55,7 @@ dependencies:
   sentry_flutter: ^8.0.0
   google_sign_in: ^6.2.1
   sign_in_with_apple: 6.1.4
+  aad_oauth: ^1.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -92,8 +93,8 @@ flutter_native_splash:
   # of your splash screen to a solid color.  Use background_image to set the background of your
   # splash screen to a png image.  This is useful for gradients. The image will be stretch to the
   # size of the app. Only one parameter can be used, color and background_image cannot both be set.
-  color: "#1976D2"
-  color_dark: "#1976D2"
+  color: "#1565C0"
+  color_dark: "#1565C0"
   #background_image: "assets/background.png"
 
   # Optional parameters are listed below.  To enable a parameter, uncomment the line by removing
@@ -147,8 +148,8 @@ flutter_native_splash:
     image: assets/images/logo_app_1152.png
 
     # Splash screen background color.
-    color: "#1976D2"
-    color_dark: "#1976D2"
+    color: "#1565C0"
+    color_dark: "#1565C0"
 
     # App icon background color.
     #icon_background_color: "#111111"
@@ -172,8 +173,8 @@ flutter_native_splash:
 
     # Platform specific images can be specified with the following parameters, which will override
     # the respective parameter.  You may specify all, selected, or none of these parameters:
-    color_android: "#1976D2"
-    color_dark_android: "#1976D2"
+    color_android: "#1565C0"
+    color_dark_android: "#1565C0"
     #color_ios: "#1976D2"
     #color_dark_ios: "#1976D2"
     #color_web: "#1976D2"

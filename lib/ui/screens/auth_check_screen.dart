@@ -84,30 +84,29 @@ class AuthCheckState extends State<AuthCheck> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue[700]!, Colors.blue[900]!],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: const Color(
+          0xFF1E88E5,
+        ), // Adjusted to match the logo's rendered blue
         child: Stack(
           children: [
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'assets/images/logo_app_1152.png', // Corrected path
-                    height: 120,
-                    errorBuilder: (context, error, stackTrace) {
-                      debugPrint('Error loading logo in AuthCheck: $error');
-                      return const Icon(
-                        Icons.business,
-                        color: Colors.white,
-                        size: 80,
-                      );
-                    },
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/images/logo_app_1152.png', // Corrected path
+                      height: 180, // Increased from 120 to 180 (50% larger)
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        debugPrint('Error loading logo in AuthCheck: $error');
+                        return const Icon(
+                          Icons.business,
+                          color: Colors.white,
+                          size: 80,
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
                   const CircularProgressIndicator(

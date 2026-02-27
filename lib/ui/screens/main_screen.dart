@@ -8,7 +8,6 @@ import 'package:app_cemdo/ui/screens/home_screen.dart';
 import 'package:app_cemdo/ui/screens/invoices_screen.dart';
 import 'package:app_cemdo/ui/screens/accounts_screen.dart';
 import 'package:app_cemdo/ui/screens/notices_screen.dart';
-import 'package:app_cemdo/ui/screens/login_screen.dart';
 import 'package:app_cemdo/ui/widgets/about_dialog_widget.dart';
 import 'package:app_cemdo/data/services/version_service.dart'; // Added
 import 'package:app_cemdo/ui/widgets/version_check_dialog.dart'; // Added
