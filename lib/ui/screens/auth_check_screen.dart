@@ -21,10 +21,13 @@ class AuthCheckState extends State<AuthCheck> {
 
   Future<void> _checkAndNavigate() async {
     if (!mounted) return;
+    /*
     final notificationService = Provider.of<NotificationService>(
       context,
       listen: false,
     );
+    */
+    /* Guideline 4.5.4 - Notifications must be optional
     await notificationService.checkPermissionStatus();
 
     if (!notificationService.notificationsEnabled) {
@@ -32,6 +35,7 @@ class AuthCheckState extends State<AuthCheck> {
       Navigator.of(context).pushReplacementNamed('/notification_permission');
       return;
     }
+    */
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.checkLoginStatus();
@@ -93,20 +97,18 @@ class AuthCheckState extends State<AuthCheck> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ClipOval(
-                    child: Image.asset(
-                      'assets/images/logo_512_blanco.png', // Updated path
-                      height: 180, // Increased from 120 to 180 (50% larger)
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        debugPrint('Error loading logo in AuthCheck: $error');
-                        return const Icon(
-                          Icons.business,
-                          color: Colors.white,
-                          size: 80,
-                        );
-                      },
-                    ),
+                  Image.asset(
+                    'assets/images/logo_512_blanco.png', // Updated path
+                    height: 180, // Increased from 120 to 180 (50% larger)
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint('Error loading logo in AuthCheck: $error');
+                      return const Icon(
+                        Icons.business,
+                        color: Colors.white,
+                        size: 80,
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   const CircularProgressIndicator(

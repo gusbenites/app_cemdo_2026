@@ -62,8 +62,9 @@ class ErrorService {
       code = '[C]';
     } else if (error is ApiException) {
       if (error.statusCode >= 500) {
-        message = 'El servidor está experimentando problemas técnicos.';
-        code = '[B]';
+        message =
+            'El servicio está temporalmente fuera de servicio o en mantenimiento. Por favor, intente de nuevo más tarde.';
+        code = '[S]';
       } else {
         message = error.message;
         code = '[B]';

@@ -39,6 +39,7 @@ class MainScreenState extends State<MainScreen> {
     _checkAccountStatusAndNavigate();
     _checkAppVersion(); // Added
 
+    /* Guideline 4.5.4 - Notifications must be optional
     // Add listener to enforce notifications in real-time
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notificationService = Provider.of<NotificationService>(
@@ -47,6 +48,7 @@ class MainScreenState extends State<MainScreen> {
       );
       notificationService.addListener(_handlePermissionChange);
     });
+    */
   }
 
   Future<void> _checkAppVersion() async {
@@ -72,6 +74,7 @@ class MainScreenState extends State<MainScreen> {
     }
   }
 
+  /*
   void _handlePermissionChange() {
     final notificationService = Provider.of<NotificationService>(
       context,
@@ -81,6 +84,7 @@ class MainScreenState extends State<MainScreen> {
       Navigator.of(context).pushReplacementNamed('/notification_permission');
     }
   }
+  */
 
   @override
   void dispose() {
@@ -88,7 +92,7 @@ class MainScreenState extends State<MainScreen> {
     // but we should remove our specific listener if we added one.
     // However, since NotificationService is a singleton in this app structure,
     // we must manually remove the listener.
-    NotificationService().removeListener(_handlePermissionChange);
+    // NotificationService().removeListener(_handlePermissionChange);
     super.dispose();
   }
 
@@ -137,7 +141,10 @@ class MainScreenState extends State<MainScreen> {
           const SupportIconButton(),
           PopupMenuButton<String>(
             onSelected: (String item) async {
-              if (item == 'Acerca de...') {
+              if (item == 'Notificaciones') {
+                if (!mounted) return;
+                Navigator.of(context).pushNamed('/notification_permission');
+              } else if (item == 'Acerca de...') {
                 if (!mounted) return;
                 showDialog(
                   context: context,
@@ -161,7 +168,9 @@ class MainScreenState extends State<MainScreen> {
               }
             },
             itemBuilder: (BuildContext context) {
-              return ['Cerrar Sesión', 'Acerca de...'].map((String choice) {
+              return ['Notificaciones', 'Cerrar Sesión', 'Acerca de...'].map((
+                String choice,
+              ) {
                 return PopupMenuItem<String>(
                   value: choice,
                   child: Text(choice),

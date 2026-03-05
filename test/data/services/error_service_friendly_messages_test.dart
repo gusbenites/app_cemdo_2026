@@ -34,7 +34,7 @@ void main() {
       );
     });
 
-    test('ApiException 500 returns [B] code and server error message', () {
+    test('ApiException 500 returns [S] code and maintenance message', () {
       expect(
         () => errorService.reportError(
           ApiException(message: 'Internal Error', statusCode: 500),

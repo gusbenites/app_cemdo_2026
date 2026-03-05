@@ -1,0 +1,138 @@
+00:00 +0: loading /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart                                                                                    00:01 +0: loading /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart                                                                                    00:01 +0: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +0 -1: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart: AuthProvider login success sets user and token [E]                               
+  Instance of 'NotInitializedError'
+  package:flutter_dotenv/src/dotenv.dart 41:7                 DotEnv.env
+  package:app_cemdo/logic/providers/auth_provider.dart 18:28  new AuthProvider
+  test/logic/providers/auth_provider_test.dart 17:20          main.<fn>
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart -p vm --plain-name 'AuthProvider login success sets user and token'
+00:01 +0 -1: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +0 -2: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart: AuthProvider login failure throws exception [E]                                  
+  Instance of 'NotInitializedError'
+  package:flutter_dotenv/src/dotenv.dart 41:7                 DotEnv.env
+  package:app_cemdo/logic/providers/auth_provider.dart 18:28  new AuthProvider
+  test/logic/providers/auth_provider_test.dart 17:20          main.<fn>
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart -p vm --plain-name 'AuthProvider login failure throws exception'
+00:01 +1 -2: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +2 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +3 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +3 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart: AuthProvider checkLoginStatus restores session if valid [E]                      
+  Instance of 'NotInitializedError'
+  package:flutter_dotenv/src/dotenv.dart 41:7                 DotEnv.env
+  package:app_cemdo/logic/providers/auth_provider.dart 18:28  new AuthProvider
+  test/logic/providers/auth_provider_test.dart 17:20          main.<fn>
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart -p vm --plain-name 'AuthProvider checkLoginStatus restores session if valid'
+00:01 +4 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +4 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart: AuthProvider logout clears session [E]                                           
+  Instance of 'NotInitializedError'
+  package:flutter_dotenv/src/dotenv.dart 41:7                 DotEnv.env
+  package:app_cemdo/logic/providers/auth_provider.dart 18:28  new AuthProvider
+  test/logic/providers/auth_provider_test.dart 17:20          main.<fn>
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart -p vm --plain-name 'AuthProvider logout clears session'
+00:01 +4 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +5 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +6 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +7 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +8 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +9 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                 00:01 +10 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/widget_test.dart: LoginScreen shows email and password fields                                                            00:01 +11 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +12 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +12 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService reporting doesn't crash before init                                  
+[ErrorService] Error reported: Test error
+00:01 +13 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +13 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages SocketException returns [C] code and friendly message
+[ErrorService] Error reported: SocketException: test
+00:01 +14 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +14 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages TimeoutException returns [C] code
+[ErrorService] Error reported: TimeoutException: test
+00:01 +15 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +15 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages ApiException 500 returns [B] code and server error message
+[ErrorService] Error reported: Internal Error
+00:01 +16 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +16 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages ApiException 400 returns [B] code and original message
+[ErrorService] Error reported: Bad Request
+00:01 +17 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +17 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages Unknown exception returns [F] code
+[ErrorService] Error reported: Exception: Unknown
+00:01 +18 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    00:01 +18 -4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextContainingWidgetFinder:<Found 2 widgets with text containing email: [
+            Text("Ingresa tu email y contraseña", debugLabel: ((englishLike titleMedium
+2021).merge((blackMountainView titleMedium).apply)).copyWith, inherit: false, color: Color(alpha:
+1.0000, red: 0.4588, green: 0.4588, blue: 0.4588, colorSpace: ColorSpace.sRGB), family: Roboto,
+size: 16.0, weight: 500, letterSpacing: 0.1, baseline: alphabetic, height: 1.5x,
+leadingDistribution: even, decoration: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue:
+0.1255, colorSpace: ColorSpace.sRGB) TextDecoration.none, textAlign: center, dependencies:
+[DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+            Text("Por favor, ingresa tu email", debugLabel: (((englishLike bodySmall
+2021).merge((blackMountainView bodySmall).apply)).copyWith).merge(unknown), inherit: false, color:
+MaterialAccentColor(primary value: Color(alpha: 1.0000, red: 1.0000, green: 0.3216, blue: 0.3216,
+colorSpace: ColorSpace.sRGB)), family: Roboto, size: 12.0, weight: 400, letterSpacing: 0.4,
+baseline: alphabetic, height: 1.3x, leadingDistribution: even, decoration: Color(alpha: 1.0000, red:
+0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB) TextDecoration.none, textAlign:
+start, overflow: ellipsis, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+          ]>
+   Which: is too many
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:47:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart line 47
+The test description was:
+  LoginScreen shows validation error on empty submit
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +18 -5: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit [E]                                
+  Test failed. See exception logs above.
+  The test description was: LoginScreen shows validation error on empty submit
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart -p vm --plain-name 'LoginScreen shows validation error on empty submit'
+00:01 +18 -5: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen calls authProvider.login on valid submit                                  00:01 +18 -5: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen calls authProvider.login on valid submit                                  
+Ocurrió un error: Error: Could not find the correct Provider<AccountProvider> above this LoginScreen Widget
+
+This happens because you used a `BuildContext` that does not include the provider
+of your choice. There are a few common scenarios:
+
+- You added a new provider in your `main.dart` and performed a hot-reload.
+  To fix, perform a hot-restart.
+
+- The provider you are trying to read is in a different route.
+
+  Providers are "scoped". So if you insert of provider inside a route, then
+  other routes will not be able to access that provider.
+
+- You used a `BuildContext` that is an ancestor of the provider you are trying to read.
+
+  Make sure that LoginScreen is under your MultiProvider/Provider<AccountProvider>.
+  This usually happens when you are creating a provider and trying to read it immediately.
+
+  For example, instead of:
+
+  ```
+  Widget build(BuildContext context) {
+    return Provider<Example>(
+      create: (_) => Example(),
+      // Will throw a ProviderNotFoundError, because `context` is associated
+      // to the widget that is the parent of `Provider<Example>`
+      child: Text(context.watch<Example>().toString()),
+    );
+  }
+  ```
+
+  consider using `builder` like so:
+
+  ```
+  Widget build(BuildContext context) {
+    return Provider<Example>(
+      create: (_) => Example(),
+      // we use `builder` to obtain a new `BuildContext` that has access to the provider
+      builder: (context, child) {
+        // No longer throws
+        return Text(context.watch<Example>().toString());
+      }
+    );
+  }
+  ```
+
+If none of these solutions work, consider asking for help on StackOverflow:
+https://stackoverflow.com/questions/tagged/flutter
+
+00:01 +19 -5: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen calls authProvider.login on valid submit                                  00:01 +19 -5: Some tests failed.                                                                                                                                                                       

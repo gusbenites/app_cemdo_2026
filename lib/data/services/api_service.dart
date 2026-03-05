@@ -69,7 +69,11 @@ class ApiService {
       // We don't necessarily want to report every 4xx to Sentry,
       // but maybe we want to log them or report 5xx.
       if (response.statusCode >= 500) {
-        ErrorService().reportError(exception, null, 'ApiService server error');
+        ErrorService().reportError(
+          exception,
+          null,
+          'ApiService server error [${response.request?.method}] ${response.request?.url}',
+        );
       }
       throw exception;
     }

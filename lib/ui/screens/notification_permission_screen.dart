@@ -70,7 +70,7 @@ class _NotificationPermissionScreenState
               ),
               const SizedBox(height: 32),
               const Text(
-                'Usted tiene las notificaciones desactivadas.',
+                '¿Desea recibir notificaciones?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -80,7 +80,7 @@ class _NotificationPermissionScreenState
               ),
               const SizedBox(height: 16),
               const Text(
-                'Las notificaciones son necesarias para el correcto funcionamiento de la aplicacion.',
+                'Le recomendamos activar las notificaciones para recibir avisos importantes sobre sus servicios y facturas.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
@@ -90,7 +90,7 @@ class _NotificationPermissionScreenState
                   Provider.of<NotificationService>(
                     context,
                     listen: false,
-                  ).openAppSettings();
+                  ).toggleNotifications(true);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -106,6 +106,25 @@ class _NotificationPermissionScreenState
                 child: const Text(
                   'Activar Notificaciones',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  // Simply go back or to the main screen
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pushReplacementNamed('/');
+                  }
+                },
+                child: const Text(
+                  'Saltar por ahora',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],

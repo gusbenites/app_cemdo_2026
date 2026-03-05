@@ -1,0 +1,170 @@
+00:00 +0: loading /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart                                                                                    00:01 +0: loading /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart                                                                                    00:01 +0: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +0: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart: AuthProvider login success sets user and token                                      
+AuthProvider.login raw response: {token: fake_token, user: {id: 1, name: Test User, email: test@example.com, avatar: null, ultimo_idcliente: 123, is_admin: 0, email_verified_at: 2023-01-01T00:00:00.000000Z}}
+00:01 +1: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +2: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/logic/providers/auth_provider_test.dart: AuthProvider login failure throws exception                                         
+Login error: Invalid credentials
+00:01 +4: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +5: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +6: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +7: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +8: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +9: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                    00:01 +10: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                   00:01 +11: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                   00:01 +12: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                   00:01 +13: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                   00:01 +13: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button                                                   
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+Tried to use Provider with a subtype of Listenable/Stream (NotificationService).
+
+This is likely a mistake, as Provider will not automatically update dependents
+when NotificationService is updated. Instead, consider changing Provider for more specific
+implementation that handles the update mechanism, such as:
+
+- ListenableProvider
+- ChangeNotifierProvider
+- ValueListenableProvider
+- StreamProvider
+
+Alternatively, if you are making your own provider, consider using InheritedProvider.
+
+If you think that this is not an error, you can disable this check by setting
+Provider.debugCheckInvalidValueType to `null` in your main file:
+
+```
+void main() {
+  Provider.debugCheckInvalidValueType = null;
+
+  runApp(MyApp());
+}
+```
+
+
+When the exception was thrown, this was the stack:
+#0      Provider.debugCheckInvalidValueType.<anonymous closure>.<anonymous closure> (package:provider/src/provider.dart:421:9)
+#1      Provider.debugCheckInvalidValueType.<anonymous closure> (package:provider/src/provider.dart:448:6)
+#2      new Provider.value.<anonymous closure> (package:provider/src/provider.dart:278:48)
+#3      new Provider.value (package:provider/src/provider.dart:280:10)
+#4      main.createLoginScreen (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:45:9)
+#5      main.<anonymous closure> (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:54:29)
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  LoginScreen displays inputs and button
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +13 -1: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen displays inputs and button [E]                                            
+  Test failed. See exception logs above.
+  The test description was: LoginScreen displays inputs and button
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart -p vm --plain-name 'LoginScreen displays inputs and button'
+00:01 +13 -1: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit                                    
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+Tried to use Provider with a subtype of Listenable/Stream (NotificationService).
+
+This is likely a mistake, as Provider will not automatically update dependents
+when NotificationService is updated. Instead, consider changing Provider for more specific
+implementation that handles the update mechanism, such as:
+
+- ListenableProvider
+- ChangeNotifierProvider
+- ValueListenableProvider
+- StreamProvider
+
+Alternatively, if you are making your own provider, consider using InheritedProvider.
+
+If you think that this is not an error, you can disable this check by setting
+Provider.debugCheckInvalidValueType to `null` in your main file:
+
+```
+void main() {
+  Provider.debugCheckInvalidValueType = null;
+
+  runApp(MyApp());
+}
+```
+
+
+When the exception was thrown, this was the stack:
+#0      Provider.debugCheckInvalidValueType.<anonymous closure>.<anonymous closure> (package:provider/src/provider.dart:421:9)
+#1      Provider.debugCheckInvalidValueType.<anonymous closure> (package:provider/src/provider.dart:448:6)
+#2      new Provider.value.<anonymous closure> (package:provider/src/provider.dart:278:48)
+#3      new Provider.value (package:provider/src/provider.dart:280:10)
+#4      main.createLoginScreen (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:45:9)
+#5      main.<anonymous closure> (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:63:29)
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  LoginScreen shows validation error on empty submit
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +13 -2: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen shows validation error on empty submit [E]                                
+  Test failed. See exception logs above.
+  The test description was: LoginScreen shows validation error on empty submit
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart -p vm --plain-name 'LoginScreen shows validation error on empty submit'
+00:01 +13 -2: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen calls authProvider.login on valid submit                                  
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+Tried to use Provider with a subtype of Listenable/Stream (NotificationService).
+
+This is likely a mistake, as Provider will not automatically update dependents
+when NotificationService is updated. Instead, consider changing Provider for more specific
+implementation that handles the update mechanism, such as:
+
+- ListenableProvider
+- ChangeNotifierProvider
+- ValueListenableProvider
+- StreamProvider
+
+Alternatively, if you are making your own provider, consider using InheritedProvider.
+
+If you think that this is not an error, you can disable this check by setting
+Provider.debugCheckInvalidValueType to `null` in your main file:
+
+```
+void main() {
+  Provider.debugCheckInvalidValueType = null;
+
+  runApp(MyApp());
+}
+```
+
+
+When the exception was thrown, this was the stack:
+#0      Provider.debugCheckInvalidValueType.<anonymous closure>.<anonymous closure> (package:provider/src/provider.dart:421:9)
+#1      Provider.debugCheckInvalidValueType.<anonymous closure> (package:provider/src/provider.dart:448:6)
+#2      new Provider.value.<anonymous closure> (package:provider/src/provider.dart:278:48)
+#3      new Provider.value (package:provider/src/provider.dart:280:10)
+#4      main.createLoginScreen (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:45:9)
+#5      main.<anonymous closure> (file:///Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart:78:29)
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  LoginScreen calls authProvider.login on valid submit
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +13 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart: LoginScreen calls authProvider.login on valid submit [E]                              
+  Test failed. See exception logs above.
+  The test description was: LoginScreen calls authProvider.login on valid submit
+  
+
+To run this test again: /Users/innovacionydesarrollocemdo/proyectos/flutter/flutter/bin/cache/dart-sdk/bin/dart test /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/ui/screens/login_screen_test.dart -p vm --plain-name 'LoginScreen calls authProvider.login on valid submit'
+00:01 +14 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/widget_test.dart: LoginScreen shows email and password fields                                                            00:01 +14 -3: loading /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart                                                          00:01 +14 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ... SocketException returns [C] code and friendly message       00:01 +14 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages SocketException returns [C] code and friendly message
+[ErrorService] Error reported: SocketException: test
+00:01 +15 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService singleton test                                                       00:01 +15 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages TimeoutException returns [C] code
+[ErrorService] Error reported: TimeoutException: test
+00:01 +16 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService singleton test                                                       00:01 +16 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages ApiException 500 returns [S] code and maintenance message
+[ErrorService] Error reported: Internal Error
+00:01 +17 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService singleton test                                                       00:01 +17 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages ApiException 400 returns [B] code and original message
+[ErrorService] Error reported: Bad Request
+00:01 +18 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService singleton test                                                       00:01 +18 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_friendly_messages_test.dart: ErrorService Friendly Messages Unknown exception returns [F] code
+[ErrorService] Error reported: Exception: Unknown
+00:01 +19 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService singleton test                                                       00:01 +20 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService singleton test                                                       00:01 +20 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService reporting doesn't crash before init                                  00:01 +20 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService reporting doesn't crash before init                                  
+[ErrorService] Error reported: Test error
+00:01 +21 -3: /Users/innovacionydesarrollocemdo/proyectos/app_cemdo_2026/test/data/services/error_service_test.dart: ErrorService reporting doesn't crash before init                                  00:01 +21 -3: Some tests failed.                                                                                                                                                                       

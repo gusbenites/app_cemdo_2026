@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.0+1
+version: 2.0.9+2026000003
 
 environment:
   sdk: ^3.9.0
@@ -102,7 +102,7 @@ flutter_native_splash:
 
   # The image parameter allows you to specify an image used in the splash screen.  It must be a
   # png file and should be sized for 4x pixel density.
-  image: assets/images/logo_app_1152.png
+  image: assets/images/logo_512_blanco.png
   # branding: assets/images/logo_cemdo.png
   # branding_mode: bottom
   # branding_bottom_padding: 64

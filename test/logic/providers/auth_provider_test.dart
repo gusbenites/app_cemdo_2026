@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:app_cemdo/data/services/api_service.dart';
 import 'package:app_cemdo/data/models/user_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../mocks/mocks.dart';
 
@@ -12,6 +13,17 @@ void main() {
   late MockSecureStorageService mockSecureStorageService;
 
   setUp(() {
+    // Initialize dotenv for tests
+    dotenv.testLoad(
+      fileInput: '''
+      GOOGLE_SERVER_CLIENT_ID=test_id
+      GOOGLE_AUTH_CALLBACK_ENDPOINT=auth/google/callback
+      APPLE_AUTH_CALLBACK_ENDPOINT=auth/apple/callback
+      MICROSOFT_CLIENT_ID=test_id
+      MICROSOFT_REDIRECT=test_redirect
+    ''',
+    );
+
     mockApiService = MockApiService();
     mockSecureStorageService = MockSecureStorageService();
     authProvider = AuthProvider(

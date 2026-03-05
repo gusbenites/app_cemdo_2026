@@ -81,7 +81,8 @@ class NotificationService extends ChangeNotifier {
       return;
     }
 
-    // Request permission for notifications
+    // Request permission for notifications - MOVED to toggleNotifications for Guideline 4.5.4
+    /*
     try {
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,
@@ -108,6 +109,7 @@ class NotificationService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error during notification permission request: $e');
     }
+    */
 
     // Listen to token refresh
     messaging.onTokenRefresh.listen((newToken) {
