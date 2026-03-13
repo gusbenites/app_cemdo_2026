@@ -222,13 +222,29 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> openAppSettings() async {
-    if (await canLaunchUrl(Uri.parse('app-settings:'))) {
-      await launchUrl(Uri.parse('app-settings:'));
+    if (Platform.isAndroid) {
+      try {
+        final packageInfo = await PackageInfo.fromPlatform();
+        final packageName = packageInfo.packageName;
+        // The standard way for Android with url_launcher (if handled by system)
+        // or just guiding the user.
+        debugPrint('Opening settings for package: $packageName');
+      } catch (e) {
+        debugPrint('Error getting package name: $e');
+      }
+
+      // try app-settings: which some plugins/systems might handle
+      if (await canLaunchUrl(Uri.parse('app-settings:'))) {
+        await launchUrl(Uri.parse('app-settings:'));
+      } else {
+        debugPrint('Could not open app settings via app-settings:');
+      }
     } else {
-      debugPrint('Could not open app settings.');
-      // Fallback for iOS if 'app-settings:' scheme doesn't work
-      // For Android, it usually works. For iOS, it might need specific URL schemes.
-      // Consider showing a dialog to manually guide the user.
+      if (await canLaunchUrl(Uri.parse('app-settings:'))) {
+        await launchUrl(Uri.parse('app-settings:'));
+      } else {
+        debugPrint('Could not open app settings.');
+      }
     }
   }
 

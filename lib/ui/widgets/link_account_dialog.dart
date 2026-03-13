@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
+import 'package:app_cemdo/data/services/notification_service.dart';
 
 class LinkAccountDialog extends StatefulWidget {
   const LinkAccountDialog({super.key});
@@ -29,6 +30,51 @@ class _LinkAccountDialogState extends State<LinkAccountDialog> {
         context,
         listen: false,
       );
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
+
+      // Check if notifications are enabled
+      if (!notificationService.notificationsEnabled) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Aviso Importante'),
+              ],
+            ),
+            content: const Text(
+              'Las notificaciones están desactivadas. Es altamente recomendable activarlas para recibir confirmaciones de sus gestiones y avisos de vencimientos.\n\n¿Desea continuar con la vinculación de todas formas?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('IR A CONFIGURACIÓN'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('CONTINUAR'),
+              ),
+            ],
+          ),
+        );
+
+        if (proceed == false) {
+          // If the user wants to go to settings
+          if (mounted) {
+            notificationService.openAppSettings();
+          }
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+      }
+
       final token = await _secureStorageService.getToken();
 
       if (token != null) {
@@ -59,11 +105,13 @@ class _LinkAccountDialogState extends State<LinkAccountDialog> {
             );
           }
         } catch (e) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: \$e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
           );
         }
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('No se encontró el token de autenticación.'),
@@ -92,7 +140,7 @@ class _LinkAccountDialogState extends State<LinkAccountDialog> {
           borderRadius: BorderRadius.circular(15.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
