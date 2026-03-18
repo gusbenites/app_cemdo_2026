@@ -13,12 +13,13 @@ class _NoticesScreenState extends State<NoticesScreen> {
   @override
   void initState() {
     super.initState();
-    // Mark notifications as read when the screen is viewed
+    // We no longer mark all as read automatically on view.
+    // We trigger a fetch to get the freshest list.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<NotificationService>(
         context,
         listen: false,
-      ).markNotificationsAsRead();
+      ).getNotifications();
     });
   }
 
@@ -45,54 +46,81 @@ class _NoticesScreenState extends State<NoticesScreen> {
                           itemBuilder: (context, index) {
                             final notification = notifications[index];
                             String formattedDate = '';
-                            if (notification['timestamp'] != null) {
+                            final String dateString = notification['sent_at'] ?? notification['created_at'] ?? '';
+                            if (dateString.isNotEmpty) {
                               try {
-                                final timestamp = DateTime.parse(
-                                  notification['timestamp'],
-                                );
+                                final timestamp = DateTime.parse(dateString).toLocal();
                                 formattedDate =
                                     '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
                               } catch (e) {
-                                formattedDate = notification['timestamp'];
+                                formattedDate = dateString;
                               }
                             }
 
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      notification['title'] ?? 'Sin Título',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      notification['body'] ?? 'Sin Contenido',
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          formattedDate,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                            final bool isRead = notification['is_read'] ?? true;
+                            final int? notificationId = notification['id'];
+
+                            return GestureDetector(
+                              onTap: () {
+                                if (!isRead && notificationId != null) {
+                                  notificationService.markAsRead(notificationId);
+                                }
+                              },
+                              child: Card(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                elevation: isRead ? 1 : 3,
+                                color: isRead ? Colors.white : Colors.blue[50],
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              notification['title'] ?? 'Sin Título',
+                                              style: TextStyle(
+                                                fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                          if (!isRead)
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.blue,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        notification['body'] ?? 'Sin Contenido',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            formattedDate,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );

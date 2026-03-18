@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http; // Added for HTTP requests
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added for .env access
 import 'package:flutter/foundation.dart'; // Added for debugPrint
@@ -15,6 +12,7 @@ import 'dart:io'; // Added for Platform
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:app_cemdo/ui/utils/global_navigator_key.dart';
+import 'package:app_cemdo/data/services/api_service.dart';
 
 class NotificationService extends ChangeNotifier {
   static final NotificationService _instance = NotificationService._internal();
@@ -129,33 +127,15 @@ class NotificationService extends ChangeNotifier {
       debugPrint(
         '******** Foreground Notification Received: ${message.messageId}',
       );
-      debugPrint('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        debugPrint(
-          'Notification content: ${message.notification!.title} - ${message.notification!.body}',
-        );
-        saveNotification(
-          message.notification!.title ?? 'No Title',
-          message.notification!.body ?? 'No Body',
-          message.data['tipo'] ?? 'general',
-          message.data['timestamp'] ?? DateTime.now().toIso8601String(),
-        );
-      }
+      _updateUnreadCount();
+      getNotifications();
     });
 
     // Handle messages when the app is in the background or terminated
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('******** Notification Opened App: ${message.messageId}');
-      debugPrint('Message data: ${message.data}');
-      if (message.notification != null) {
-        saveNotification(
-          message.notification!.title ?? 'No Title',
-          message.notification!.body ?? 'No Body',
-          message.data['tipo'] ?? 'general',
-          message.data['timestamp'] ?? DateTime.now().toIso8601String(),
-        );
-      }
+      _updateUnreadCount();
+      getNotifications();
     });
 
     _updateUnreadCount(); // Initial load of unread count
@@ -322,90 +302,85 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
+  // We keep this signature but it's no longer saving to prefs.
+  // We rely on API for state. If needed, you could fallback to API call or local cache.
   Future<void> saveNotification(
     String title,
     String body,
     String tipo,
     String timestamp,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> notifications = prefs.getStringList('notifications') ?? [];
-    final notification = {
-      'title': title,
-      'body': body,
-      'tipo': tipo,
-      'timestamp': timestamp,
-      'read': false, // Mark as unread when saving
-    };
-    notifications.add(jsonEncode(notification));
-    await prefs.setStringList('notifications', notifications);
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
-        .toList();
-    _unreadCount++; // Increment unread count
-    notifyListeners(); // Notify listeners that the notification list has changed
+    // Deprecated for local, we just update from API
+    await _updateUnreadCount();
+    await getNotifications();
   }
 
-  Future<List<Map<String, dynamic>>> getNotifications() async {
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
-        .toList();
-    notifyListeners();
+  Future<List<Map<String, dynamic>>> getNotifications({int page = 1}) async {
+    try {
+      final secureStorageService = SecureStorageService();
+      final authToken = await secureStorageService.getToken();
+      if (authToken == null) return _notificationsList;
+
+      final apiService = ApiService();
+      final response = await apiService.get('api/v2/notifications?page=$page', token: authToken);
+      if (response != null && response['success'] == true && response['data'] != null) {
+        final List<dynamic> rawData = response['data']['data'] ?? [];
+        if (page == 1) {
+          _notificationsList = rawData.cast<Map<String, dynamic>>();
+        } else {
+          _notificationsList.addAll(rawData.cast<Map<String, dynamic>>());
+        }
+        await _updateUnreadCount();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching notifications: $e');
+    }
     return _notificationsList;
   }
 
-  Future<List<Map<String, dynamic>>> _loadNotificationsFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final notificationStrings = prefs.getStringList('notifications') ?? [];
-    List<Map<String, dynamic>> parsedNotifications = [];
-    for (String notificationString in notificationStrings) {
-      try {
-        parsedNotifications.add(
-          jsonDecode(notificationString) as Map<String, dynamic>,
-        );
-      } catch (e) {
-        debugPrint(
-          'Error decoding notification string: $e - $notificationString',
-        );
-      }
-    }
-    return parsedNotifications;
-  }
+  Future<void> markAsRead(int id) async {
+    try {
+      final secureStorageService = SecureStorageService();
+      final authToken = await secureStorageService.getToken();
+      if (authToken == null) return;
 
-  Future<void> markNotificationsAsRead() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> notifications = prefs.getStringList('notifications') ?? [];
-    List<String> updatedNotifications = [];
-    for (String notificationString in notifications) {
-      try {
-        Map<String, dynamic> notification =
-            jsonDecode(notificationString) as Map<String, dynamic>;
-        notification['read'] = true; // Mark as read
-        updatedNotifications.add(jsonEncode(notification));
-      } catch (e) {
-        debugPrint(
-          'Error decoding notification string for marking as read: $e - $notificationString',
-        );
-        updatedNotifications.add(
-          notificationString,
-        ); // Add original if decoding fails
+      final apiService = ApiService();
+      await apiService.post('api/v2/notifications/$id/read', token: authToken);
+      
+      // Update local state temporarily so UI reflects instantly
+      final index = _notificationsList.indexWhere((n) => n['id'] == id);
+      if (index != -1 && !(_notificationsList[index]['is_read'] ?? true)) {
+        _notificationsList[index]['is_read'] = true;
+        if (_unreadCount > 0) _unreadCount--;
+        notifyListeners();
       }
+    } catch (e) {
+      debugPrint('Error marking notification as read: $e');
     }
-    await prefs.setStringList('notifications', updatedNotifications);
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
-        .toList();
-    _unreadCount = 0; // Reset unread count
-    notifyListeners(); // Notify listeners that the notification list has changed
   }
 
   Future<void> _updateUnreadCount() async {
-    _notificationsList = (await _loadNotificationsFromPrefs()).reversed
-        .toList();
-    _unreadCount = _notificationsList.where((n) => n['read'] == false).length;
-    notifyListeners();
+    try {
+      final secureStorageService = SecureStorageService();
+      final authToken = await secureStorageService.getToken();
+      if (authToken == null) return;
+
+      final apiService = ApiService();
+      final response = await apiService.get('api/v2/notifications/unread-count', token: authToken);
+      if (response != null && response['success'] == true) {
+        // the payload might come directly in 'data'
+        _unreadCount = response['data'] ?? 0;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching unread count: $e');
+    }
   }
 
   Future<void> clearNotifications() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('notifications', []);
+    // If the API supports clearing, call it here. Otherwise just clear local view.
+    // Assuming backend handles deletion or we just clear caching.
     _notificationsList = [];
     _unreadCount = 0;
     notifyListeners();
