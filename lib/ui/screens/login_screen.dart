@@ -299,8 +299,39 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 10),
                           TextButton(
-                            onPressed: () {
-                              // Placeholder for forgot password action
+                            onPressed: () async {
+                              final email = _emailController.text.trim();
+                              if (email.isEmpty) {
+                                ErrorNotification.showSnackBar(
+                                  'Por favor, ingresa tu email para recuperar la contraseña.',
+                                );
+                                return;
+                              }
+                              
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              
+                              try {
+                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                await authProvider.forgotPassword(email);
+                                if (!mounted) return;
+                                ErrorNotification.showSnackBar(
+                                  'Se ha enviado un correo con las instrucciones para restablecer tu contraseña.',
+                                );
+                              } catch (e) {
+                                if (!mounted) return;
+                                final errorMessage = e.toString().replaceFirst('Exception: ', '');
+                                ErrorNotification.showSnackBar(
+                                  'No se pudo recuperar: $errorMessage',
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                }
+                              }
                             },
                             child: Text(
                               '¿Olvidaste tu contraseña?',

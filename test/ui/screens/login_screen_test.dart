@@ -7,6 +7,7 @@ import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:app_cemdo/logic/providers/account_provider.dart';
 import 'package:app_cemdo/data/services/notification_service.dart';
 import 'package:app_cemdo/ui/screens/login_screen.dart';
+import 'package:app_cemdo/ui/utils/error_notification.dart';
 
 import '../../mocks/mocks.dart';
 
@@ -29,6 +30,7 @@ void main() {
 
     // Default stubs
     when(() => mockAuthProvider.login(any(), any())).thenAnswer((_) async {});
+    when(() => mockAuthProvider.forgotPassword(any())).thenAnswer((_) async {});
     when(() => mockAuthProvider.token).thenReturn('fake_token');
     when(
       () => mockAccountProvider.fetchAccounts(any()),
@@ -46,7 +48,10 @@ void main() {
           value: mockNotificationService,
         ),
       ],
-      child: const MaterialApp(home: LoginScreen()),
+      child: MaterialApp(
+        scaffoldMessengerKey: ErrorNotification.messengerKey,
+        home: const LoginScreen(),
+      ),
     );
   }
 
@@ -92,6 +97,40 @@ void main() {
 
     verify(
       () => mockAuthProvider.login('test@example.com', 'password123'),
+    ).called(1);
+  });
+
+  testWidgets('LoginScreen shows error when forgot password tap with empty email', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(createLoginScreen());
+
+    // Tap forgot password without entering email
+    await tester.tap(find.text('¿Olvidaste tu contraseña?'));
+    await tester.pump();
+
+    // ErrorNotification uses ScaffoldMessenger without needing to be right in the widget tree,
+    // but in tests we might need to check if the text exists somewhere.
+    expect(find.text('Por favor, ingresa tu email para recuperar la contraseña.'), findsOneWidget);
+  });
+
+  testWidgets('LoginScreen calls forgotPassword on tap with valid email', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(createLoginScreen());
+
+    // Enter email
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'test@example.com',
+    );
+
+    // Tap forgot password
+    await tester.tap(find.text('¿Olvidaste tu contraseña?'));
+    await tester.pump();
+
+    verify(
+      () => mockAuthProvider.forgotPassword('test@example.com'),
     ).called(1);
   });
 }

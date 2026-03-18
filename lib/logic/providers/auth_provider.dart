@@ -237,6 +237,19 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> forgotPassword(String email) async {
+    try {
+      await _apiService.post(
+        'forgot-password',
+        body: {'email': email},
+      );
+    } catch (e, stack) {
+      debugPrint('Forgot Password error: $e');
+      ErrorService().reportError(e, stack, 'AuthProvider.forgotPassword');
+      rethrow;
+    }
+  }
+
   Future<void> register(
     String name,
     String email,

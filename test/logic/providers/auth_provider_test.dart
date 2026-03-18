@@ -68,6 +68,21 @@ void main() {
       ).called(1);
     });
 
+    test('forgotPassword sends request to backend', () async {
+      // Arrange
+      when(
+        () => mockApiService.post('forgot-password', body: any(named: 'body')),
+      ).thenAnswer((_) async => {});
+
+      // Act
+      await authProvider.forgotPassword(email);
+
+      // Assert
+      verify(
+        () => mockApiService.post('forgot-password', body: {'email': email}),
+      ).called(1);
+    });
+
     test('login failure throws exception', () async {
       // Arrange
       final exception = ApiException(
