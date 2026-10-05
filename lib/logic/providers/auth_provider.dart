@@ -168,9 +168,27 @@ class AuthProvider with ChangeNotifier {
       await _saveLoginData(token, user);
     } catch (e, stack) {
       debugPrint('Apple Sign-In error: $e');
-      if (e is SignInWithAppleAuthorizationException &&
-          e.code == AuthorizationErrorCode.canceled) {
-        return; // User cancelled
+      if (e is SignInWithAppleAuthorizationException) {
+        switch (e.code) {
+          case AuthorizationErrorCode.canceled:
+            // Usuario canceló el diálogo — no es un error real
+            return;
+          case AuthorizationErrorCode.unknown:
+            // Error 1000: puede ser cancelación en iOS 26+, app en background,
+            // o falta de iCloud activo. No reportar como crash crítico.
+            debugPrint(
+              'Apple Sign-In: AuthorizationErrorCode.unknown (error 1000). '
+              'Posible cancelación del usuario o iCloud no disponible.',
+            );
+            rethrow;
+          default:
+            ErrorService().reportError(
+              e,
+              stack,
+              'AuthProvider.signInWithApple',
+            );
+            rethrow;
+        }
       }
       ErrorService().reportError(e, stack, 'AuthProvider.signInWithApple');
       rethrow;

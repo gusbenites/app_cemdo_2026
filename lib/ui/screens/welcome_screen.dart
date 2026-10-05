@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:app_cemdo/ui/utils/error_notification.dart';
 import 'package:app_cemdo/logic/providers/account_provider.dart';
@@ -287,9 +288,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     );
                                   } catch (e) {
                                     if (!context.mounted) return;
-                                    ErrorNotification.showSnackBar(
-                                      'Error al iniciar sesión con Apple. Inténtelo de nuevo.',
-                                    );
+                                    // Error 1000 (unknown): suele ser cancelación del usuario
+                                    // en iOS 26+ o iCloud no disponible. No mostrar como error crítico.
+                                    if (e is SignInWithAppleAuthorizationException &&
+                                        e.code == AuthorizationErrorCode.unknown) {
+                                      ErrorNotification.showSnackBar(
+                                        'No se pudo iniciar sesión con Apple. '
+                                        'Asegúrate de tener iCloud activo e intentá de nuevo.',
+                                      );
+                                    } else {
+                                      ErrorNotification.showSnackBar(
+                                        'Error al iniciar sesión con Apple. Inténtelo de nuevo.',
+                                      );
+                                    }
                                   } finally {
                                     if (mounted) {
                                       setState(() => _isLoading = false);
