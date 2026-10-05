@@ -25,13 +25,45 @@ class ErrorService {
     log('ErrorService initialized in $environment mode');
   }
 
+  bool _isNetworkOfflineError(Object error) {
+    if (error is SocketException || error is TimeoutException) {
+      return true;
+    }
+    if (error is http.ClientException) {
+      final msg = error.message.toLowerCase();
+      if (msg.contains('connection closed') ||
+          msg.contains('connection reset') ||
+          msg.contains('connection refused') ||
+          msg.contains('failed host lookup') ||
+          msg.contains('network is unreachable')) {
+        return true;
+      }
+    }
+    if (error is OSError) {
+      // errno 7 = No address associated with hostname, errno 101/51 = Network unreachable
+      if (error.errorCode == 7 ||
+          error.errorCode == 101 ||
+          error.errorCode == 51) {
+        return true;
+      }
+    }
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('no address associated with hostname') ||
+        errorStr.contains('network is unreachable') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('connection closed before full header was received')) {
+      return true;
+    }
+    return false;
+  }
+
   void reportError(Object error, [StackTrace? stackTrace, String? hint]) {
     log('Error reported: $error');
     if (stackTrace != null) {
       debugPrint(stackTrace.toString());
     }
 
-    if (_isInitialized) {
+    if (_isInitialized && !_isNetworkOfflineError(error)) {
       Sentry.captureException(
         error,
         stackTrace: stackTrace,

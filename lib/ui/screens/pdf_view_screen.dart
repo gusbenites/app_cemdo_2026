@@ -52,6 +52,7 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
         final dir = await getApplicationDocumentsDirectory();
         final file = File('${dir.path}/${widget.nroFactura}.pdf');
         await file.writeAsBytes(response.bodyBytes);
+        if (!mounted) return;
         setState(() {
           _pdfPath = file.path;
           _isLoading = false;
@@ -60,6 +61,7 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
         throw Exception('Failed to load PDF: ${response.statusCode}');
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
@@ -67,15 +69,43 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
     }
   }
 
-  Future<void> _sharePdf() async {
-    if (_pdfPath != null) {
-      await Share.shareXFiles([
-        XFile(_pdfPath!),
-      ], text: 'Factura ${widget.nroFactura}');
-    } else {
+  Future<void> _sharePdf(BuildContext shareContext) async {
+    if (_pdfPath == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No hay PDF para compartir.')),
       );
+      return;
+    }
+
+    try {
+      final box = shareContext.findRenderObject() as RenderBox?;
+      Rect? sharePositionOrigin;
+      if (box != null &&
+          box.hasSize &&
+          box.size.width > 0 &&
+          box.size.height > 0) {
+        sharePositionOrigin = box.localToGlobal(Offset.zero) & box.size;
+      } else {
+        final size = MediaQuery.maybeOf(shareContext)?.size;
+        if (size != null && size.width > 0 && size.height > 0) {
+          sharePositionOrigin = Rect.fromCenter(
+            center: Offset(size.width / 2, size.height / 2),
+            width: 10,
+            height: 10,
+          );
+        }
+      }
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(_pdfPath!)],
+          text: 'Factura ${widget.nroFactura}',
+          sharePositionOrigin: sharePositionOrigin,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error sharing PDF: $e');
     }
   }
 
@@ -88,6 +118,7 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
       // locations, other methods might be needed. For simplicity, we'll use getExternalStorageDirectory
       // which works well for Android.
       final directory = await getExternalStorageDirectory();
+      if (!mounted) return;
       if (directory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -101,13 +132,15 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
       final originalFile = File(_pdfPath!);
       await originalFile.copy(newPath);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('PDF descargado en: $newPath')));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error al descargar el PDF: \$e')));
+      ).showSnackBar(SnackBar(content: Text('Error al descargar el PDF: $e')));
     }
   }
 
@@ -117,9 +150,12 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
       appBar: AppBar(
         title: Text('Factura ${widget.nroFactura}'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _pdfPath != null ? _sharePdf : null,
+          Builder(
+            builder: (buttonContext) => IconButton(
+              icon: const Icon(Icons.share),
+              onPressed:
+                  _pdfPath != null ? () => _sharePdf(buttonContext) : null,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.download), // Changed to download icon

@@ -113,12 +113,15 @@ class NotificationService extends ChangeNotifier {
     messaging.onTokenRefresh.listen((newToken) {
       debugPrint('******** FCM Token Refresh: $newToken');
       // If user is already logged in, update backend
-      final authProvider = Provider.of<AuthProvider>(
-        GlobalNavigatorKey.navigatorKey.currentContext!,
-        listen: false,
-      );
-      if (authProvider.user != null) {
-        sendFcmTokenToBackend(authProvider.user!.id.toString());
+      final currentContext = GlobalNavigatorKey.navigatorKey.currentContext;
+      if (currentContext != null && currentContext.mounted) {
+        final authProvider = Provider.of<AuthProvider>(
+          currentContext,
+          listen: false,
+        );
+        if (authProvider.user != null) {
+          sendFcmTokenToBackend(authProvider.user!.id.toString());
+        }
       }
     });
 
@@ -167,36 +170,77 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
+  Future<String?> _waitForApnsToken(FirebaseMessaging messaging) async {
+    if (!Platform.isIOS) return null;
+    try {
+      String? apnsToken = await messaging.getAPNSToken();
+      int retries = 0;
+      while (apnsToken == null && retries < 5) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        apnsToken = await messaging.getAPNSToken();
+        retries++;
+      }
+      return apnsToken;
+    } catch (e) {
+      debugPrint('Error waiting for APNS token: $e');
+      return null;
+    }
+  }
+
   Future<void> toggleNotifications(bool enable) async {
     final messaging = _firebaseMessaging;
     if (messaging == null) return;
 
     if (enable) {
-      NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
+      try {
+        NotificationSettings settings = await messaging.requestPermission(
+          alert: true,
+          announcement: false,
+          badge: true,
+          carPlay: false,
+          criticalAlert: false,
+          provisional: false,
+          sound: true,
+        );
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional) {
-        _notificationsEnabled = true;
-        // Subscribe to a general topic if you have one, or ensure auto-init is enabled
-        await messaging.subscribeToTopic('general_notifications');
-        debugPrint('Notifications enabled and subscribed to topic.');
-      } else {
-        _notificationsEnabled = false;
-        debugPrint('Notifications permission not granted by user.');
+        if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+            settings.authorizationStatus == AuthorizationStatus.provisional) {
+          _notificationsEnabled = true;
+
+          // On iOS, subscribing to topics requires APNS token to be ready first
+          try {
+            if (Platform.isIOS) {
+              final apnsToken = await _waitForApnsToken(messaging);
+              if (apnsToken != null) {
+                await messaging.subscribeToTopic('general_notifications');
+                debugPrint('Notifications enabled and subscribed to topic.');
+              } else {
+                debugPrint(
+                  'APNS token not ready; skipping immediate topic subscription.',
+                );
+              }
+            } else {
+              await messaging.subscribeToTopic('general_notifications');
+              debugPrint('Notifications enabled and subscribed to topic.');
+            }
+          } catch (e) {
+            debugPrint('Error subscribing to topic: $e');
+          }
+        } else {
+          _notificationsEnabled = false;
+          debugPrint('Notifications permission not granted by user.');
+        }
+      } catch (e) {
+        debugPrint('Error requesting notification permission: $e');
       }
     } else {
       _notificationsEnabled = false;
-      // Unsubscribe from all topics or disable auto-init
-      await messaging.unsubscribeFromTopic('general_notifications');
-      debugPrint('Notifications disabled and unsubscribed from topic.');
+      try {
+        await messaging.unsubscribeFromTopic('general_notifications');
+        debugPrint('Notifications disabled and unsubscribed from topic.');
+      } catch (e) {
+        debugPrint('Error unsubscribing from topic: $e');
+      }
     }
     notifyListeners(); // Notify listeners about the change
   }
@@ -239,6 +283,16 @@ class NotificationService extends ChangeNotifier {
 
     String? fcmToken;
     try {
+      if (Platform.isIOS) {
+        final apnsToken = await _waitForApnsToken(messaging);
+        if (apnsToken == null) {
+          debugPrint(
+            'NotificationService: APNS token not available on iOS; deferring FCM token fetch.',
+          );
+          return;
+        }
+      }
+
       fcmToken = await messaging.getToken();
       debugPrint('******** Sending FCM Token to backend: $fcmToken');
     } catch (e) {

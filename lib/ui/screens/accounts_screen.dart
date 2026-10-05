@@ -340,7 +340,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             context: context,
                             builder: (context) => const LinkAccountDialog(),
                           );
-                          if (success == true && mounted) {
+                          if (success == true && context.mounted) {
                             Navigator.of(context).pushReplacementNamed('/main');
                           }
                         },

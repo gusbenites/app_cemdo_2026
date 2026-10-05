@@ -66,6 +66,7 @@ class VerifyEmailScreen extends StatelessWidget {
               TextButton(
                 onPressed: () async {
                   await authProvider.logout();
+                  if (!context.mounted) return;
                   Navigator.of(
                     context,
                   ).pushNamedAndRemoveUntil('/welcome', (route) => false);

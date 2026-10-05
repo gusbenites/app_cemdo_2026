@@ -648,7 +648,10 @@ class _IndividualSupplyDetailsScreenState
         ),
         Text(
           status.isEmpty ? 'N/A' : status,
-          style: TextStyle(fontSize: 9, color: color.withOpacity(0.8)),
+          style: TextStyle(
+            fontSize: 9,
+            color: color.withValues(alpha: 0.8),
+          ),
         ),
       ],
     );

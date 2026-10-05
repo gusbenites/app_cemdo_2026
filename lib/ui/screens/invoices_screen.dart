@@ -80,6 +80,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     } catch (e) {
       debugPrint('Error fetching invoices in InvoicesScreen: $e');
       // Clear invoices on error
+      if (!mounted) return;
       final invoiceProvider = Provider.of<InvoiceProvider>(
         context,
         listen: false,

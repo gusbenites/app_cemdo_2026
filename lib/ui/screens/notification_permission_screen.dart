@@ -39,6 +39,7 @@ class _NotificationPermissionScreenState
         listen: false,
       );
       notificationService.checkPermissionStatus().then((_) {
+        if (!mounted) return;
         if (notificationService.notificationsEnabled) {
           // If enabled, go back to auth check
           Navigator.of(context).pushReplacementNamed('/');

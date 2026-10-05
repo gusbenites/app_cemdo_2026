@@ -197,7 +197,8 @@ class AuthProvider with ChangeNotifier {
       final String? token = await oauth.getAccessToken();
 
       if (token == null) {
-        throw Exception('No se pudo obtener el token de Microsoft.');
+        debugPrint('Microsoft Sign-In: Cancelled by user or token unavailable.');
+        return;
       }
 
       // Enviar el token al backend
@@ -232,6 +233,13 @@ class AuthProvider with ChangeNotifier {
       await _saveLoginData(apiToken, user);
     } catch (e, stack) {
       debugPrint('Microsoft Sign-In error: $e');
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('canceled') ||
+          errorStr.contains('cancelled') ||
+          errorStr.contains('user_cancelled') ||
+          errorStr.contains('access_denied')) {
+        return;
+      }
       ErrorService().reportError(e, stack, 'AuthProvider.signInWithMicrosoft');
       rethrow;
     }

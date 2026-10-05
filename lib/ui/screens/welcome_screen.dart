@@ -50,7 +50,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Column(
@@ -135,7 +135,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       );
                                   await authProvider.signInWithGoogle();
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
+                                  if (authProvider.token == null) return;
 
                                   final accountProvider =
                                       Provider.of<AccountProvider>(
@@ -146,13 +147,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     authProvider.token!,
                                   );
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   Navigator.pushReplacementNamed(
                                     context,
                                     '/main',
                                   );
                                 } catch (e) {
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('Error: ${e.toString()}'),
@@ -201,7 +202,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       );
                                   await authProvider.signInWithMicrosoft();
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
+                                  if (authProvider.token == null) return;
 
                                   final accountProvider =
                                       Provider.of<AccountProvider>(
@@ -212,13 +214,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     authProvider.token!,
                                   );
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   Navigator.pushReplacementNamed(
                                     context,
                                     '/main',
                                   );
                                 } catch (e) {
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('Error: ${e.toString()}'),
@@ -266,7 +268,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                         );
                                     await authProvider.signInWithApple();
 
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
+                                    if (authProvider.token == null) return;
 
                                     final accountProvider =
                                         Provider.of<AccountProvider>(
@@ -277,13 +280,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       authProvider.token!,
                                     );
 
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
                                     Navigator.pushReplacementNamed(
                                       context,
                                       '/main',
                                     );
                                   } catch (e) {
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
                                     ErrorNotification.showSnackBar(
                                       'Error al iniciar sesión con Apple. Inténtelo de nuevo.',
                                     );

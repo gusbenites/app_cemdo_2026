@@ -61,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await accountProvider.fetchAccounts(
           authProvider.token!,
         ); // Fetch accounts after successful login
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/main');
       } on SocketException {
         if (!mounted) return; // Added check
@@ -107,10 +108,11 @@ class _LoginScreenState extends State<LoginScreen> {
           'Ocurrió un error: ${errorMessage.replaceFirst('Exception: ', '')}',
         );
       } finally {
-        if (!mounted) return; // Added check
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -141,8 +143,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    color: Colors.white.withOpacity(
-                      0.9,
+                    color: Colors.white.withValues(
+                      alpha: 0.9,
                     ), // Less white background
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
