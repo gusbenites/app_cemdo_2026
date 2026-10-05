@@ -4,6 +4,7 @@ import 'package:app_cemdo/data/models/user_model.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 import 'package:app_cemdo/exceptions/email_not_verified_exception.dart';
 import 'package:app_cemdo/data/services/error_service.dart';
+import 'package:app_cemdo/data/services/notification_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -37,6 +38,9 @@ class AuthProvider with ChangeNotifier {
     _user = user;
     await _secureStorageService.storeLoginData(token, user);
     notifyListeners();
+    // Enviar el token FCM al backend siempre que hay una sesión nueva o renovada.
+    // Se ejecuta en background sin bloquear el flujo de autenticación.
+    NotificationService().sendFcmTokenToBackend(user.id.toString());
   }
 
   Future<void> login(String email, String password) async {
