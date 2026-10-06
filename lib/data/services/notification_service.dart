@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http; // Added for HTTP requests
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added for .env access
 import 'package:flutter/foundation.dart'; // Added for debugPrint
@@ -9,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart'; // Added for opening app settin
 import 'package:device_info_plus/device_info_plus.dart'; // Added for device info
 import 'package:package_info_plus/package_info_plus.dart'; // Added for app version
 import 'dart:io'; // Added for Platform
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:app_cemdo/logic/providers/auth_provider.dart';
 import 'package:app_cemdo/ui/utils/global_navigator_key.dart';
@@ -21,6 +23,18 @@ class NotificationService extends ChangeNotifier {
   NotificationService._internal();
 
   FirebaseMessaging? _messaging;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
+  static const Duration _tokenRenewalInterval = Duration(days: 7);
+
+  static const AndroidNotificationChannel _fcmChannel = AndroidNotificationChannel(
+    'fcm_default_channel',
+    'Notificaciones',
+    description: 'Notificaciones push de CEMDO',
+    importance: Importance.high,
+  );
+
   FirebaseMessaging? get _firebaseMessaging {
     try {
       if (Firebase.apps.isNotEmpty) {
@@ -109,6 +123,30 @@ class NotificationService extends ChangeNotifier {
     }
     */
 
+    // Initialize local notifications plugin (for foreground display)
+    try {
+      await _localNotifications.initialize(
+        const InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+          iOS: DarwinInitializationSettings(),
+        ),
+      );
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.createNotificationChannel(_fcmChannel);
+
+      // iOS: allow notifications to be displayed while app is in foreground
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+    } catch (e) {
+      debugPrint('Error initializing local notifications: $e');
+    }
+
     // Listen to token refresh
     messaging.onTokenRefresh.listen((newToken) {
       debugPrint('******** FCM Token Refresh: $newToken');
@@ -130,6 +168,7 @@ class NotificationService extends ChangeNotifier {
       debugPrint(
         '******** Foreground Notification Received: ${message.messageId}',
       );
+      _showLocalNotification(message);
       _updateUnreadCount();
       getNotifications();
     });
@@ -144,6 +183,26 @@ class NotificationService extends ChangeNotifier {
     _updateUnreadCount(); // Initial load of unread count
     await checkPermissionStatus(); // Ensure initial status is set
     notifyListeners(); // Notify listeners about the initial state
+  }
+
+  void _showLocalNotification(RemoteMessage message) {
+    final RemoteNotification? notification = message.notification;
+    if (notification == null) return;
+    _localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _fcmChannel.id,
+          _fcmChannel.name,
+          channelDescription: _fcmChannel.description,
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+    );
   }
 
   void _updatePermissionStatus(AuthorizationStatus status) {
@@ -354,6 +413,57 @@ class NotificationService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error during HTTP post of FCM token: $e');
     }
+  }
+
+  /// Force-regenerates the FCM token and sends it to the backend.
+  /// Use when the existing token may be stale/expired (e.g. after server-side
+  /// invalidation or a long period without notifications).
+  Future<void> renewFcmToken(String userId) async {
+    final messaging = _firebaseMessaging;
+    if (messaging == null) {
+      debugPrint('NotificationService: Cannot renew token, messaging unavailable.');
+      return;
+    }
+
+    try {
+      if (Platform.isIOS) {
+        final apnsToken = await _waitForApnsToken(messaging);
+        if (apnsToken == null) {
+          debugPrint('NotificationService: APNS token not available; deferring renew.');
+          return;
+        }
+      }
+
+      // Guard: only regenerate the token if it hasn't been renewed recently
+      final prefs = await SharedPreferences.getInstance();
+      final lastRenewalMs = prefs.getInt('fcm_token_last_renewal');
+      if (lastRenewalMs != null) {
+        final lastRenewal = DateTime.fromMillisecondsSinceEpoch(lastRenewalMs);
+        if (DateTime.now().difference(lastRenewal) < _tokenRenewalInterval) {
+          debugPrint(
+            'NotificationService: Token renewed recently, skipping regeneration.',
+          );
+          // Still ensure the current token is registered with the backend
+          await sendFcmTokenToBackend(userId);
+          return;
+        }
+      }
+
+      // Delete the cached token so getToken() generates a fresh one
+      await messaging.deleteToken();
+      final newToken = await messaging.getToken();
+      debugPrint('******** FCM Token renewed: $newToken');
+      await prefs.setInt(
+        'fcm_token_last_renewal',
+        DateTime.now().millisecondsSinceEpoch,
+      );
+    } catch (e) {
+      debugPrint('Error renewing FCM token: $e');
+      return;
+    }
+
+    // Send the fresh token to the backend
+    await sendFcmTokenToBackend(userId);
   }
 
   // We keep this signature but it's no longer saving to prefs.

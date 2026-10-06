@@ -72,7 +72,7 @@ class AuthCheckState extends State<AuthCheck> {
           }
         }
 
-        NotificationService().sendFcmTokenToBackend(
+        NotificationService().renewFcmToken(
           authProvider.user!.id.toString(),
         );
       }
