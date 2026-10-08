@@ -40,6 +40,11 @@ class _GenericSupplyDetailsScreenState
         token: authProvider.token,
       );
 
+      // La pantalla puede haberse cerrado mientras esperábamos la respuesta;
+      // en release `setState` sobre un State descartado lanza
+      // "Null check operator used on a null value".
+      if (!mounted) return;
+
       if (response != null && response['data'] != null) {
         setState(() {
           _details = response['data'];
@@ -52,6 +57,7 @@ class _GenericSupplyDetailsScreenState
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;

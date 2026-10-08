@@ -49,6 +49,7 @@ class NotificationService extends ChangeNotifier {
   int _unreadCount = 0;
   List<Map<String, dynamic>> _notificationsList = [];
   bool _notificationsEnabled = false; // New: Track notification status
+  bool _permissionRequestInFlight = false;
 
   int get unreadCount => _unreadCount;
   List<Map<String, dynamic>> get notifications => _notificationsList;
@@ -251,6 +252,14 @@ class NotificationService extends ChangeNotifier {
     if (messaging == null) return;
 
     if (enable) {
+      // Dos toques rápidos sobre "Activar Notificaciones" lanzan dos
+      // peticiones concurrentes y Firebase responde:
+      // "A request for permissions is already running".
+      if (_permissionRequestInFlight) {
+        debugPrint('NotificationService: solicitud de permiso ya en curso.');
+        return;
+      }
+      _permissionRequestInFlight = true;
       try {
         NotificationSettings settings = await messaging.requestPermission(
           alert: true,
@@ -291,6 +300,8 @@ class NotificationService extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Error requesting notification permission: $e');
+      } finally {
+        _permissionRequestInFlight = false;
       }
     } else {
       _notificationsEnabled = false;

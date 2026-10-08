@@ -80,12 +80,30 @@ class ApiService {
   }
 
   String _getErrorMessage(http.Response response) {
+    final reason = response.reasonPhrase?.trim() ?? '';
+    final fallback = reason.isEmpty
+        ? 'Error ${response.statusCode}'
+        : 'Error ${response.statusCode}: $reason';
+
     try {
       final body = jsonDecode(response.body);
-      return body['message'] ?? 'Error desconocido';
+      if (body is Map) {
+        final message = body['message'];
+        if (message is String && message.trim().isNotEmpty) {
+          return message.trim();
+        }
+        // Algunos endpoints responden {"error": "..."} sin "message".
+        final error = body['error'];
+        if (error is String && error.trim().isNotEmpty) {
+          return '$fallback (${error.trim()})';
+        }
+      }
     } catch (_) {
-      return 'Error ${response.statusCode}: ${response.reasonPhrase}';
+      // El body no es JSON: se usa el mensaje por defecto.
     }
+    // Sin "message" utilizable: el código de estado identifica el fallo
+    // (evita el antiguo "Error desconocido" que no permitía diagnosticar).
+    return fallback;
   }
 }
 

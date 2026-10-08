@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:app_cemdo/data/services/api_service.dart';
 import 'package:app_cemdo/data/models/user_model.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
@@ -123,9 +124,32 @@ class AuthProvider with ChangeNotifier {
       await _saveLoginData(token, user);
     } catch (e, stack) {
       debugPrint('Google Sign-In error: $e');
-      ErrorService().reportError(e, stack, 'AuthProvider.signInWithGoogle');
+      if (_isGoogleSignInDismissed(e)) {
+        // El usuario descartó el selector de cuentas de Google: no es un
+        // error de la app, se ignora para no ensuciar Sentry ni mostrar
+        // un SnackBar con el error crudo del plugin.
+        debugPrint('Google Sign-In cancelado por el usuario.');
+        return;
+      }
+      ErrorService().reportSocialAuthError(
+        e,
+        stack,
+        'AuthProvider.signInWithGoogle',
+      );
       rethrow;
     }
+  }
+
+  /// Detecta el "error" que lanza el plugin de Google al cerrar el diálogo.
+  ///
+  /// En Android el cancel llega como `PlatformException(sign_in_failed, 16:)`
+  /// (el propio plugin sólo traga `sign_in_canceled`), y `sign_in_failed` sin
+  /// ese código sí es un error real que debe reportarse.
+  bool _isGoogleSignInDismissed(Object error) {
+    if (error is! PlatformException) return false;
+    if (error.code == GoogleSignIn.kSignInCanceledError) return true;
+    if (error.code != GoogleSignIn.kSignInFailedError) return false;
+    return RegExp(r'(^|[^\d.])16\s*:').hasMatch(error.message ?? '');
   }
 
   Future<void> signInWithApple() async {
@@ -186,7 +210,7 @@ class AuthProvider with ChangeNotifier {
             );
             rethrow;
           default:
-            ErrorService().reportError(
+            ErrorService().reportSocialAuthError(
               e,
               stack,
               'AuthProvider.signInWithApple',
@@ -194,7 +218,11 @@ class AuthProvider with ChangeNotifier {
             rethrow;
         }
       }
-      ErrorService().reportError(e, stack, 'AuthProvider.signInWithApple');
+      ErrorService().reportSocialAuthError(
+        e,
+        stack,
+        'AuthProvider.signInWithApple',
+      );
       rethrow;
     }
   }
@@ -262,7 +290,11 @@ class AuthProvider with ChangeNotifier {
           errorStr.contains('access_denied')) {
         return;
       }
-      ErrorService().reportError(e, stack, 'AuthProvider.signInWithMicrosoft');
+      ErrorService().reportSocialAuthError(
+        e,
+        stack,
+        'AuthProvider.signInWithMicrosoft',
+      );
       rethrow;
     }
   }
@@ -275,7 +307,7 @@ class AuthProvider with ChangeNotifier {
       );
     } catch (e, stack) {
       debugPrint('Forgot Password error: $e');
-      ErrorService().reportError(e, stack, 'AuthProvider.forgotPassword');
+      ErrorService().reportApiError(e, stack, 'AuthProvider.forgotPassword');
       rethrow;
     }
   }
@@ -312,7 +344,7 @@ class AuthProvider with ChangeNotifier {
       await _apiService.post('email/resend');
     } catch (e, stack) {
       debugPrint('Error resending verification email: $e');
-      ErrorService().reportError(
+      ErrorService().reportApiError(
         e,
         stack,
         'AuthProvider.resendVerificationEmail',
