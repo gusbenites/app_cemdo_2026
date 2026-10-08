@@ -78,6 +78,50 @@ class ErrorService {
     _notifyUser(error);
   }
 
+  /// true si [error] es un 5xx que `ApiService._handleResponse` ya envió a
+  /// Sentry (con el método y la URL en el hint).
+  static bool isAlreadyReportedApiError(Object error) =>
+      error is ApiException && error.statusCode >= 500;
+
+  /// Igual que [reportError], pero omite el envío cuando el error es un 5xx
+  /// de [ApiService], porque `ApiService._handleResponse` ya lo reporta con el
+  /// método y la URL en el hint.
+  ///
+  /// Reportarlo también desde el provider crea un **segundo** evento en Sentry
+  /// con otro stacktrace (mismo fallo partido en dos issues) y un SnackBar
+  /// extra para el usuario.
+  void reportApiError(Object error, [StackTrace? stackTrace, String? hint]) {
+    if (isAlreadyReportedApiError(error)) {
+      log('5xx ya reportado por ApiService (${hint ?? 'sin hint'}) — omitido.');
+      return;
+    }
+    reportError(error, stackTrace, hint);
+  }
+
+  /// Para los flujos de login social (Apple / Google / Microsoft).
+  ///
+  /// Ahí el backend hace `report($e)` con la causa real (el ApiException que
+  /// llega a la app sólo lleva un mensaje genérico), así que reportarlo también
+  /// desde la app duplica el evento sin sumar información.
+  ///
+  /// Sólo se envían los errores que **no** son [ApiException]: fallos locales
+  /// como una respuesta mal formada o un `User.fromJson` inválido, que el
+  /// backend nunca va a ver.
+  void reportSocialAuthError(
+    Object error, [
+    StackTrace? stackTrace,
+    String? hint,
+  ]) {
+    if (error is ApiException) {
+      log(
+        'ApiException de login social no reportada '
+        '(${error.statusCode}): ${hint ?? 'sin hint'}',
+      );
+      return;
+    }
+    reportError(error, stackTrace, hint);
+  }
+
   void log(String message) {
     debugPrint('[ErrorService] $message');
   }
