@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.1.4+2026000009
+version: 2.1.5+2026000010
 
 environment:
   sdk: ^3.9.0
@@ -69,6 +69,8 @@ dev_dependencies:
   flutter_native_splash: ^2.4.6
   flutter_launcher_icons: ^0.13.1
   mocktail: ^1.0.4
+  # Usado por tool/gen_splash12.dart para generar el icono del splash de Android 12+
+  image: ^4.8.0
 
 flutter_launcher_icons:
   android: true
@@ -145,7 +147,10 @@ flutter_native_splash:
     # 768 pixels in diameter.  To fit a 1152x1152 image within a circle with a 768 diameter, simply 
     # ensure that the most important design elements of your image are placed within a circular area
     # with a 768 diameter at the center of the 1152x1152 canvas.
-    image: assets/images/logo_512_blanco.png
+    # NOTA: Android 12+ enmascara este icono en un círculo (zona segura = 2/3 del
+    # lienzo), por lo que se usa un PNG cuadrado de 1152x1152 con el logo centrado
+    # y contenido dentro de ese círculo. Ver tool/gen_splash12.dart.
+    image: assets/images/splash_android12.png
 
     # Splash screen background color.
     color: "#1565C0"
@@ -179,7 +184,7 @@ flutter_native_splash:
     #color_dark_ios: "#1976D2"
     #color_web: "#1976D2"
     #color_dark_web: "#042a49"
-    image_android: assets/images/logo_512_blanco.png
+    image_android: assets/images/splash_android12.png
 
     #image_dark_android: assets/splash-invert-android.png
     #image_ios: assets/splash-ios.png
