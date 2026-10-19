@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:app_cemdo/data/services/error_service.dart';
 import 'package:app_cemdo/data/services/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:share_plus/share_plus.dart'; // Added for sharing
@@ -25,6 +26,13 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
   String? _pdfPath;
   bool _isLoading = true;
   String? _errorMessage;
+
+  /// Nombre base de archivo válido para cualquier sistema de archivo
+  /// (sin `/`, `:`, etc. que romperían la escritura o el compartir).
+  String get _fileName {
+    final cleaned = widget.nroFactura.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    return cleaned.trim().isEmpty ? 'factura_${widget.idcbte}' : cleaned;
+  }
 
   @override
   void initState() {
@@ -50,7 +58,7 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
 
       if (response.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
-        final file = File('${dir.path}/${widget.nroFactura}.pdf');
+        final file = File('${dir.path}/$_fileName.pdf');
         await file.writeAsBytes(response.bodyBytes);
         if (!mounted) return;
         setState(() {
@@ -70,7 +78,8 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
   }
 
   Future<void> _sharePdf(BuildContext shareContext) async {
-    if (_pdfPath == null) {
+    final String? path = _pdfPath;
+    if (path == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No hay PDF para compartir.')),
@@ -79,9 +88,11 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
     }
 
     try {
-      final box = shareContext.findRenderObject() as RenderBox?;
+      // Se resuelve el origen del popover ANTES del primer await, para no
+      // usar el BuildContext a través de una brecha asíncrona.
+      final box = shareContext.findRenderObject();
       Rect? sharePositionOrigin;
-      if (box != null &&
+      if (box is RenderBox &&
           box.hasSize &&
           box.size.width > 0 &&
           box.size.height > 0) {
@@ -97,50 +108,94 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
         }
       }
 
+      if (!await File(path).exists()) {
+        throw Exception('El archivo PDF ya no está disponible.');
+      }
+
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(_pdfPath!)],
+          files: [XFile(path, mimeType: 'application/pdf')],
           text: 'Factura ${widget.nroFactura}',
+          subject: 'Factura ${widget.nroFactura}',
+          fileNameOverrides: ['$_fileName.pdf'],
           sharePositionOrigin: sharePositionOrigin,
         ),
       );
-    } catch (e) {
-      debugPrint('Error sharing PDF: $e');
+    } catch (e, stack) {
+      // Visible para el usuario (SnackBar) y reportado a Sentry.
+      ErrorService().reportError(
+        e,
+        stack,
+        'Al compartir el PDF ${widget.nroFactura}',
+      );
     }
   }
 
+  /// Copia el PDF a una ubicación accesible para el usuario.
+  ///
+  /// * **Android:** directorio externo de la app
+  ///   (`getExternalStorageDirectory()`), que sólo existe en Android.
+  /// * **iOS:** no existe una carpeta "Descargas" accesible para la app y
+  ///   `getExternalStorageDirectory()` lanza `UnsupportedError`, así que se
+  ///   guarda en `Documentos/Downloads`, visible en la app **Archivos**
+  ///   (On My iPhone › Portal CEMDO › Downloads) gracias a las claves
+  ///   `UIFileSharingEnabled` y `LSSupportsOpeningDocumentsInPlace` del
+  ///   Info.plist.
   Future<void> _downloadPdf() async {
-    if (_pdfPath == null) return;
+    final String? path = _pdfPath;
+    if (path == null) return;
 
     try {
-      // Get the external storage directory (e.g., Downloads on Android)
-      // For iOS, getApplicationDocumentsDirectory() is usually used, but for saving to user accessible
-      // locations, other methods might be needed. For simplicity, we'll use getExternalStorageDirectory
-      // which works well for Android.
-      final directory = await getExternalStorageDirectory();
-      if (!mounted) return;
-      if (directory == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo acceder al directorio de descarga.'),
-          ),
-        );
-        return;
+      final File source = File(path);
+      if (!await source.exists()) {
+        throw Exception('El archivo PDF ya no está disponible.');
       }
 
-      final newPath = '${directory.path}/${widget.nroFactura}.pdf';
-      final originalFile = File(_pdfPath!);
-      await originalFile.copy(newPath);
+      final Directory targetDir;
+      if (Platform.isIOS) {
+        final Directory docs = await getApplicationDocumentsDirectory();
+        targetDir = Directory('${docs.path}/Downloads');
+        if (!await targetDir.exists()) {
+          await targetDir.create(recursive: true);
+        }
+      } else {
+        final Directory? external = await getExternalStorageDirectory();
+        if (external == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo acceder al directorio de descarga.'),
+            ),
+          );
+          return;
+        }
+        targetDir = external;
+      }
+
+      final newPath = '${targetDir.path}/$_fileName.pdf';
+      await source.copy(newPath);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('PDF descargado en: $newPath')));
-    } catch (e) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            Platform.isIOS
+                ? 'PDF guardado en Archivos › Portal CEMDO › Downloads'
+                : 'PDF descargado en: $newPath',
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e, stack) {
+      // Visible para el usuario (SnackBar) y reportado a Sentry.
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al descargar el PDF: $e')));
+      ErrorService().reportError(
+        e,
+        stack,
+        'Al descargar el PDF ${widget.nroFactura}',
+      );
     }
   }
 
@@ -153,8 +208,9 @@ class _PdfViewScreenState extends State<PdfViewScreen> {
           Builder(
             builder: (buttonContext) => IconButton(
               icon: const Icon(Icons.share),
-              onPressed:
-                  _pdfPath != null ? () => _sharePdf(buttonContext) : null,
+              onPressed: _pdfPath != null
+                  ? () => _sharePdf(buttonContext)
+                  : null,
             ),
           ),
           IconButton(
